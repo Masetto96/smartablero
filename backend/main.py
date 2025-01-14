@@ -2,7 +2,12 @@ import os
 import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+import re
+from bs4 import BeautifulSoup
+from datetime import datetime
 from dotenv import load_dotenv
+from typing import List, Dict
+
 
 app = FastAPI()
 
@@ -60,3 +65,59 @@ async def get_weather():
         return response
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=500, detail=f"ServerError: {e}") from e
+    
+# ...existing FastAPI setup code...
+
+async def scrape_movie_schedule() -> List[Dict]:
+    try:
+        url = "https://zumzeigcine.coop/es/cine/sesiones/"
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        response.encoding = 'utf-8'
+        
+        soup = BeautifulSoup(response.content, 'html.parser')
+        movie_titles = soup.find_all('h2', class_=re.compile(r'^filmtitle'))
+        directors = soup.find_all('div', class_='autor')
+        sessions = soup.find_all('span', class_='sessions')
+        
+        movies = []
+        for idx, title in enumerate(movie_titles):
+            movie = {
+                "title": title.get_text(strip=True),
+                "director": directors[idx].get_text(strip=True),
+                "sessions": []
+            }
+            
+            session_times = sessions[idx].find_all('div', class_='session')
+            if not session_times:
+                directors.pop(idx)
+                movies.append(movie)
+                continue
+                
+            for session_time in session_times:
+                date_time_str = session_time.get_text(strip=True)
+                match = re.search(r'(\w{2}) (\d{1,2}\.\d{1,2}\.\d{1,2})\((\d{2}:\d{2})\)', date_time_str)
+                if match:
+                    day_of_week, date_str, time_str = match.groups()
+                    session_time_obj = datetime.strptime(time_str, '%H:%M')
+                    filter_time = datetime.strptime('18:55', '%H:%M')
+                    if session_time_obj > filter_time:
+                        movie["sessions"].append({
+                            "day": day_of_week,
+                            "date": date_str,
+                            "time": time_str
+                        })
+            
+            movies.append(movie)
+        return movies
+        
+    except requests.RequestException as e:
+        raise HTTPException(status_code=503, detail=f"Failed to fetch movie data: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.get("/movies")
+async def get_movies():
+    """Get the movie schedule from Zumzeig Cinema"""
+    movies = await scrape_movie_schedule()
+    return {"status": 200, "data": movies[:10]}

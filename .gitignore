@@ -10,8 +10,15 @@ __pycache__/
 # virtual envs
 .*_venv
 
+#
+*playground.ipynb
+
 # C extensions
 *.so
+
+# Python bytecode cache
+__pycache__/
+*.pyc
 
 # Distribution / packaging
 .Python

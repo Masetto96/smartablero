@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { Card, Paper, Group, Text, Grid, MantineProvider, Container, Box, Stack } from '@mantine/core';
+import { IconCloudRain, IconClock, IconCalendar } from '@tabler/icons-react';
 import { Line, Bar } from 'react-chartjs-2';
+import './App.css'
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,6 +16,7 @@ import {
   Legend
 } from 'chart.js';
 import { WiThermometer, WiRaindrops } from "react-icons/wi";
+// import { BiTime } from "react-icons/bi";
 
 ChartJS.register(
   CategoryScale,
@@ -24,23 +29,9 @@ ChartJS.register(
   Legend
 );
 
-
-// const getTemperatureColor = (temp) => {
-//   // Use HSL color space for better color interpolation
-//   // Hue: 240 (blue) to 0 (red)
-//   const minTemp = 0;
-//   const maxTemp = 35;
-  
-//   // Normalize temperature to 0-1 range
-//   const normalizedTemp = Math.max(0, Math.min(1, (temp - minTemp) / (maxTemp - minTemp)));
-  
-//   // Calculate hue (240 = blue, 0 = red)
-//   const hue = 240 - (normalizedTemp * 240);
-  
-//   // Use fixed saturation and lightness for better visibility
-//   return `hsla(${hue}, 70%, 50%, 0.8)`;
-// };
-
+const formatPeriod = (periodo) => {
+  return `${periodo.slice(0, 2)}:00 - ${periodo.slice(2)}:00`;
+};
 
 const formatHour = (hour) => `${hour}`;
 
@@ -79,8 +70,30 @@ const WeatherDashboard = () => {
   if (!weatherData || !weatherData.data || weatherData.data.length === 0) {
     return <div className="text-yellow-800">No weather data available</div>;
   }
-
-
+  const RainProbCards = ({ probData }) => (
+    <Grid gutter="xs">
+      {probData.map((prob, index) => (
+        <Grid.Col key={index} span={12}>
+          <Paper p="xs" radius="md" withBorder>
+            <Group position="apart" spacing="xs">
+              <Group spacing="xs">
+                <IconClock size={16} />
+                <Text size="sm">{formatPeriod(prob.periodo)}</Text>
+              </Group>
+              <Group spacing="xs">
+                <IconCloudRain size={16} />
+                <Text fw={500}>{prob.value}%</Text>
+              </Group>
+              <Group spacing="xs">
+                <IconCalendar size={16} />
+                <Text size="sm">{prob.fecha}</Text>
+              </Group>
+            </Group>
+          </Paper>
+        </Grid.Col>
+      ))}
+    </Grid>
+  );
   // Transform the weather data for the chart
   const chartData = weatherData.data[0].forecast_hourly.map((hourData) => ({
     hour: formatHour(hourData.hour),
@@ -99,24 +112,29 @@ const WeatherDashboard = () => {
   const allTemperatures = [
     ...chartData.map(data => data.temperature),
     ...chartData.map(data => data.feelsLike),
-    ...chartDataTmr.map(data => data.feelsLike),
+    ...chartDataTmr.map(data => data.temperature),
     ...chartDataTmr.map(data => data.feelsLike),
 
   ];
-  
+
   const minTemp = Math.floor(Math.min(...allTemperatures));
   const maxTemp = Math.ceil(Math.max(...allTemperatures));
 
   const getTemperatureColor = (temp) => {
-    // Normalize temperature to 0-1 range using actual min/max
     const normalizedTemp = Math.max(0, Math.min(1, (temp - minTemp) / (maxTemp - minTemp)));
-    
-    // Calculate hue (240 = blue, 0 = red)
     const hue = 240 - (normalizedTemp * 240);
-    
     return `hsla(${hue}, 80%, 60%, 0.9)`;
   };
 
+  const getCurrentWeather = () => {
+    const currentHour = new Date().getHours();
+    const currentData = chartData.find(data => data.hour == currentHour) || chartDataTmr.find(data => data.hour == currentHour);
+
+    return currentData ? {
+      temperature: currentData.temperature,
+      feelsLike: currentData.feelsLike
+    } : null;
+  };
 
   const temperatureData = {
     labels: [...chartData.map((data) => data.hour), ...chartDataTmr.map((data) => data.hour)],
@@ -167,11 +185,6 @@ const WeatherDashboard = () => {
         ticks: {
           stepSize: 1, // Show every degree
         },
-        // grid: {
-        //   display: true,
-        //   drawOnChartArea: true,
-        //   drawTicks: true,
-        // },
         title: {
           display: true,
           text: 'temperatura (°C)'
@@ -180,7 +193,7 @@ const WeatherDashboard = () => {
     },
     plugins: {
       legend: {
-        display: false,  // Hide legend
+        display: true,  // Hide legend
       }
     },
     responsive: true,
@@ -211,24 +224,46 @@ const WeatherDashboard = () => {
     maintainAspectRatio: true,
 
   };
+  const current = getCurrentWeather();
+  console.log("current", current);
+  const rainProb = weatherData.data
+    .slice(0, 3)
+    .flatMap(day => day.prob_precipitacion.map(data => ({
+      value: parseInt(data.value),
+      periodo: data.periodo,
+      fecha: day.fecha
+    })));
 
   return (
-    <div className="max-w-7xl mx-auto p-4 space-y-8">
-      <div className="bg-white rounded-lg shadow-lg p-4">
-        <div style={{ height: '400px', width: '800px', marginBottom: '50px' }}>
-        <p className="temperature-text">
-            Temperatura y sensación térmica
-        </p>
+    <Container fluid>
+      <Grid>
+        <Grid.Col span={{ base: 12, md: 8 }}>
+          <h5>Current Temperature: {current.temperature}°C</h5>
+          <h5>Feels Like: {current.feelsLike}°C</h5>
           <Line data={temperatureData} options={temperatureOptions} />
-        </div>
-      </div>
-      <div className="bg-white rounded-lg shadow-lg p-4">
-        <div style={{ height: '400px', width: '800px' }}>
-          <Bar data={precipitationData} options={precipitationOptions} />
-        </div>
-      </div>
-    </div>
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, md: 4 }}>
+          <Grid>
+            <Grid.Col span={12}>
+            </Grid.Col>
+            <Grid.Col span={8} md={2} style={{ display: 'flex', flexDirection: 'column' }}>
+              <Box style={{ flex: '1 0 auto' }}>
+                <RainProbCards probData={rainProb} />
+              </Box>
+            </Grid.Col>
+            <Grid.Col span={16} md={10} style={{ display: 'flex', flexDirection: 'column' }}>
+              <Box style={{ flex: '1 0 auto' }}>
+                <Bar
+                  data={precipitationData}
+                  options={precipitationOptions}
+                  style={{ height: '100%' }}
+                />
+              </Box>
+            </Grid.Col>
+          </Grid>
+        </Grid.Col>
+      </Grid>
+    </Container>
   );
 };
-
 export default WeatherDashboard;

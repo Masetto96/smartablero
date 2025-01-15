@@ -25,8 +25,57 @@ API_KEY = os.getenv("KEY")
 @app.get("/weather")
 async def get_weather():
     """Get the weather forecast for Barcelona"""
+    weather = await get_weather_aemet()
+    return {"status": 200, "data": weather}
+
+@app.get("/movies")
+async def get_movies():
+    """Get the moviez schedule from cinemas in barcelona"""
+    movies = await scrape_zumzeig()
+    return {"status": 200, "data": movies[:10]}
+
+@app.get("/events")
+async def get_events():
+    """Get the events happening in Barcelona"""
+    events_marula = await scrape_marula()
+    return {"status": 200, "data": events_marula[:10]}
+
+async def scrape_marula():
+    """Scraping the website of Marula Café Barcelona to get the events"""
+    url = "https://marulacafe.com/bcn/"
     try:
-        url_aemet = "https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/horaria/08019" # 08019 is the code for Barcelona
+        response = requests.get(url)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        dates = soup.find_all('em', class_='date')
+        months = soup.find_all('em', class_='month')
+        event_titles = soup.find_all('span', class_='evcal_desc2 evcal_event_title')
+        event_subtitles = soup.find_all('span', class_='evcal_event_subtitle')
+        all_events = []
+
+        for idx, date in enumerate(dates):
+            current_date = date.text.strip()
+            event = {
+                "title": event_titles[idx].text.strip(),
+                "date": f"{current_date} {months[idx].text.strip()}",
+                "subtitle": event_subtitles[idx].text.strip(),
+            }
+            all_events.append(event)
+
+        return all_events
+    
+    except requests.RequestException as e:
+        raise HTTPException(status_code=503, detail=f"Failed to fetch events data: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+async def get_weather_aemet():
+    """Calls the AEMET API to get the weather forecast for Barcelona"""
+    CODIGO_MUNICIPIO = "08019"
+    try:
+        url_aemet = f"https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/horaria/{CODIGO_MUNICIPIO}" # 08019 is the code for Barcelona
         querystring = {"api_key": API_KEY}
         headers = {'cache-control': "no-cache"}
         
@@ -40,7 +89,6 @@ async def get_weather():
         datos_json = response_datos.json()
         days = datos_json[0].get("prediccion").get("dia")
 
-        response = {"status": 200, "data": []}
         forecast_by_date = {}
 
         for day in days:
@@ -60,15 +108,16 @@ async def get_weather():
                 hour = temp.get("periodo") # TODO: check that periodo is the same for all the values
                 forecast_data = {"hour": hour, "temp": temp_val, "feels_like": sens_val, "rain": prec_val}
                 forecast_by_date[fecha]["forecast_hourly"].append(forecast_data)
-        # TODO: is there a more efficient way to do this?
-        response["data"] = list(forecast_by_date.values())
-        return response
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail=f"ServerError: {e}") from e
+        # TODO: is there a more efficient way to do the above?
+        return list(forecast_by_date.values())
     
-# ...existing FastAPI setup code...
-
-async def scrape_movie_schedule() -> List[Dict]:
+    except requests.RequestException as e:
+        raise HTTPException(status_code=503, detail=f"Failed to fetch weather data: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+    
+async def scrape_zumzeig() -> List[Dict]:
+    """Scraping the website of Zumzeig Cine Cooperativa to get the moviez schedule"""
     try:
         url = "https://zumzeigcine.coop/es/cine/sesiones/"
         response = requests.get(url, timeout=10)
@@ -85,13 +134,14 @@ async def scrape_movie_schedule() -> List[Dict]:
             movie = {
                 "title": title.get_text(strip=True),
                 "director": directors[idx].get_text(strip=True),
-                "sessions": []
+                "sessions": [] # movies can have multiple sessions, duh
             }
             
             session_times = sessions[idx].find_all('div', class_='session')
-            if not session_times:
-                directors.pop(idx)
-                movies.append(movie)
+            if not session_times: # this is the case when entrades properament a la venda
+                print("no session", movie)
+                # directors.pop(idx+1)
+                # movies.append(movie)
                 continue
                 
             for session_time in session_times:
@@ -99,15 +149,13 @@ async def scrape_movie_schedule() -> List[Dict]:
                 match = re.search(r'(\w{2}) (\d{1,2}\.\d{1,2}\.\d{1,2})\((\d{2}:\d{2})\)', date_time_str)
                 if match:
                     day_of_week, date_str, time_str = match.groups()
-                    session_time_obj = datetime.strptime(time_str, '%H:%M')
-                    filter_time = datetime.strptime('18:55', '%H:%M')
-                    if session_time_obj > filter_time:
-                        movie["sessions"].append({
-                            "day": day_of_week,
-                            "date": date_str,
-                            "time": time_str
-                        })
-            
+                    # TODO filter movies after 19 on a weekday
+                    movie["sessions"].append({
+                        "day": day_of_week,
+                        "date": date_str,
+                        "time": time_str
+                    })
+
             movies.append(movie)
         return movies
         
@@ -116,8 +164,3 @@ async def scrape_movie_schedule() -> List[Dict]:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@app.get("/movies")
-async def get_movies():
-    """Get the movie schedule from Zumzeig Cinema"""
-    movies = await scrape_movie_schedule()
-    return {"status": 200, "data": movies[:10]}

@@ -1,8 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { Card, Paper, Group, Text, Grid, MantineProvider, Container, Box, Stack } from '@mantine/core';
-import { IconCloudRain, IconClock, IconCalendar } from '@tabler/icons-react';
-import { Line, Bar } from 'react-chartjs-2';
-import './App.css'
+import React, { useEffect, useState } from "react";
+import {
+  Card,
+  Paper,
+  Group,
+  Text,
+  Grid,
+  MantineProvider,
+  Container,
+  Box,
+  Stack,
+} from "@mantine/core";
+import { IconCloudRain, IconClock, IconCalendar } from "@tabler/icons-react";
+import { Line, Bar } from "react-chartjs-2";
 
 import {
   Chart as ChartJS,
@@ -13,10 +22,8 @@ import {
   BarElement,
   Title,
   Tooltip,
-  Legend
-} from 'chart.js';
-import { WiThermometer, WiRaindrops } from "react-icons/wi";
-// import { BiTime } from "react-icons/bi";
+  Legend,
+} from "chart.js";
 
 ChartJS.register(
   CategoryScale,
@@ -43,15 +50,15 @@ const WeatherDashboard = () => {
   useEffect(() => {
     const fetchWeatherData = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/weather');
+        const response = await fetch("http://127.0.0.1:8000/weather");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
         setWeatherData(data);
-        console.log('Fetched data:', data);
+        console.log("Fetched data:", data);
       } catch (e) {
-        setError(e.message || 'Failed to fetch weather data');
+        setError(e.message || "Failed to fetch weather data");
       } finally {
         setIsLoading(false);
       }
@@ -110,49 +117,64 @@ const WeatherDashboard = () => {
   }));
 
   const allTemperatures = [
-    ...chartData.map(data => data.temperature),
-    ...chartData.map(data => data.feelsLike),
-    ...chartDataTmr.map(data => data.temperature),
-    ...chartDataTmr.map(data => data.feelsLike),
-
+    ...chartData.map((data) => data.temperature),
+    ...chartData.map((data) => data.feelsLike),
+    ...chartDataTmr.map((data) => data.temperature),
+    ...chartDataTmr.map((data) => data.feelsLike),
   ];
 
   const minTemp = Math.floor(Math.min(...allTemperatures));
   const maxTemp = Math.ceil(Math.max(...allTemperatures));
 
   const getTemperatureColor = (temp) => {
-    const normalizedTemp = Math.max(0, Math.min(1, (temp - minTemp) / (maxTemp - minTemp)));
-    const hue = 240 - (normalizedTemp * 240);
+    const normalizedTemp = Math.max(
+      0,
+      Math.min(1, (temp - minTemp) / (maxTemp - minTemp))
+    );
+    const hue = 240 - normalizedTemp * 240;
     return `hsla(${hue}, 80%, 60%, 0.9)`;
   };
 
   const getCurrentWeather = () => {
     const currentHour = new Date().getHours();
-    const currentData = chartData.find(data => data.hour == currentHour) || chartDataTmr.find(data => data.hour == currentHour);
+    const currentData =
+      chartData.find((data) => data.hour == currentHour) ||
+      chartDataTmr.find((data) => data.hour == currentHour);
 
-    return currentData ? {
-      temperature: currentData.temperature,
-      feelsLike: currentData.feelsLike
-    } : null;
+    return currentData
+      ? {
+          temperature: currentData.temperature,
+          feelsLike: currentData.feelsLike,
+        }
+      : null;
   };
 
   const temperatureData = {
-    labels: [...chartData.map((data) => data.hour), ...chartDataTmr.map((data) => data.hour)],
+    labels: [
+      ...chartData.map((data) => data.hour),
+      ...chartDataTmr.map((data) => data.hour),
+    ],
     datasets: [
       {
-        label: 'Temperature',
-        data: [...chartData.map((data) => data.temperature), ...chartDataTmr.map((data) => data.temperature)],
+        label: "Temperature",
+        data: [
+          ...chartData.map((data) => data.temperature),
+          ...chartDataTmr.map((data) => data.temperature),
+        ],
         segment: {
-          borderColor: ctx => getTemperatureColor(ctx.p1.parsed.y),
+          borderColor: (ctx) => getTemperatureColor(ctx.p1.parsed.y),
         },
         borderWidth: 3,
         tension: 0.4,
       },
       {
-        label: 'Feels Like',
-        data: [...chartData.map((data) => data.feelsLike), ...chartDataTmr.map((data) => data.feelsLike)],
+        label: "Feels Like",
+        data: [
+          ...chartData.map((data) => data.feelsLike),
+          ...chartDataTmr.map((data) => data.feelsLike),
+        ],
         segment: {
-          borderColor: ctx => getTemperatureColor(ctx.p1.parsed.y),
+          borderColor: (ctx) => getTemperatureColor(ctx.p1.parsed.y),
         },
         borderDash: [5, 5],
         borderWidth: 3,
@@ -162,13 +184,19 @@ const WeatherDashboard = () => {
   };
 
   const precipitationData = {
-    labels: [...chartData.map((data) => data.hour), ...chartDataTmr.map((data) => data.hour)],
+    labels: [
+      ...chartData.map((data) => data.hour),
+      ...chartDataTmr.map((data) => data.hour),
+    ],
     datasets: [
       {
-        label: 'Lluvia',
-        data: [...chartData.map((data) => data.rain), ...chartDataTmr.map((data) => data.rain)],
-        borderColor: 'rgb(6, 146, 240)',
-        backgroundColor: 'rgba(6, 131, 214, 0.87)',
+        label: "Lluvia",
+        data: [
+          ...chartData.map((data) => data.rain),
+          ...chartDataTmr.map((data) => data.rain),
+        ],
+        borderColor: "rgb(6, 146, 240)",
+        backgroundColor: "rgba(6, 131, 214, 0.87)",
       },
     ],
   };
@@ -187,14 +215,14 @@ const WeatherDashboard = () => {
         },
         title: {
           display: true,
-          text: 'temperatura (°C)'
-        }
+          text: "temperatura (°C)",
+        },
       },
     },
     plugins: {
       legend: {
-        display: true,  // Hide legend
-      }
+        display: true, // Hide legend
+      },
     },
     responsive: true,
     maintainAspectRatio: true,
@@ -211,28 +239,27 @@ const WeatherDashboard = () => {
         beginAtZero: true,
         title: {
           display: true,
-          text: 'milímetros (mm)'
-        }
+          text: "milímetros (mm)",
+        },
       },
     },
     plugins: {
       legend: {
-        display: true,  // Hide legend
-      }
+        display: true, // Hide legend
+      },
     },
     responsive: true,
     maintainAspectRatio: true,
-
   };
   const current = getCurrentWeather();
   console.log("current", current);
-  const rainProb = weatherData.data
-    .slice(0, 3)
-    .flatMap(day => day.prob_precipitacion.map(data => ({
+  const rainProb = weatherData.data.slice(0, 4).flatMap((day) =>
+    day.prob_precipitacion.map((data) => ({
       value: parseInt(data.value),
       periodo: data.periodo,
-      fecha: day.fecha
-    })));
+      fecha: day.fecha,
+    }))
+  );
 
   return (
     <Container fluid>
@@ -244,19 +271,26 @@ const WeatherDashboard = () => {
         </Grid.Col>
         <Grid.Col span={{ base: 12, md: 4 }}>
           <Grid>
-            <Grid.Col span={12}>
-            </Grid.Col>
-            <Grid.Col span={8} md={2} style={{ display: 'flex', flexDirection: 'column' }}>
-              <Box style={{ flex: '1 0 auto' }}>
+            <Grid.Col span={12}></Grid.Col>
+            <Grid.Col
+              span={8}
+              md={2}
+              style={{ display: "flex", flexDirection: "column" }}
+            >
+              <Box style={{ flex: "1 0 auto" }}>
                 <RainProbCards probData={rainProb} />
               </Box>
             </Grid.Col>
-            <Grid.Col span={16} md={10} style={{ display: 'flex', flexDirection: 'column' }}>
-              <Box style={{ flex: '1 0 auto' }}>
+            <Grid.Col
+              span={16}
+              md={10}
+              style={{ display: "flex", flexDirection: "column" }}
+            >
+              <Box style={{ flex: "1 0 auto" }}>
                 <Bar
                   data={precipitationData}
                   options={precipitationOptions}
-                  style={{ height: '100%' }}
+                  style={{ height: "100%" }}
                 />
               </Box>
             </Grid.Col>

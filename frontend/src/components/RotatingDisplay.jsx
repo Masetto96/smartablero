@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const RotatingDisplay = ({ components, intervalMs = 50000 }) => {
+const RotatingDisplay = ({ components, intervalMs = 90000 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {

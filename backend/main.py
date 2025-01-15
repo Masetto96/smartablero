@@ -1,14 +1,18 @@
 import os
+import re
+from typing import List, Dict
+from functools import partial
+from datetime import datetime, timedelta
 import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-import re
 from bs4 import BeautifulSoup
-from datetime import datetime
 from dotenv import load_dotenv
-from typing import List, Dict
+from cachetools import TTLCache, cached
+from cachetools.keys import hashkey
 
-
+load_dotenv()
+API_KEY = os.getenv("KEY")
 app = FastAPI()
 
 app.add_middleware(
@@ -19,32 +23,33 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-load_dotenv()
-API_KEY = os.getenv("KEY")
+cache_hour = TTLCache(maxsize=1024, ttl=timedelta(hours=1), timer=datetime.now)
+cache_day = TTLCache(maxsize=1024, ttl=timedelta(days=1), timer=datetime.now)
 
 @app.get("/weather")
-async def get_weather():
+def get_weather():
     """Get the weather forecast for Barcelona"""
-    weather = await get_weather_aemet()
+    weather = get_weather_aemet()
     return {"status": 200, "data": weather}
 
 @app.get("/movies")
-async def get_movies():
+def get_movies():
     """Get the moviez schedule from cinemas in barcelona"""
-    movies = await scrape_zumzeig()
+    movies = scrape_zumzeig()
     return {"status": 200, "data": movies[:10]}
 
 @app.get("/events")
-async def get_events():
+def get_events():
     """Get the events happening in Barcelona"""
-    events_marula = await scrape_marula()
+    events_marula = scrape_marula()
     return {"status": 200, "data": events_marula[:10]}
 
-async def scrape_marula():
+@cached(cache_day, key=partial(hashkey, 'marula'))
+def scrape_marula():
     """Scraping the website of Marula Café Barcelona to get the events"""
-    url = "https://marulacafe.com/bcn/"
+    url = "https://marulacafe.com/bcn/" 
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=10)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
         
@@ -70,8 +75,8 @@ async def scrape_marula():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-
-async def get_weather_aemet():
+@cached(cache_hour, key=partial(hashkey, 'weather'))
+def get_weather_aemet():
     """Calls the AEMET API to get the weather forecast for Barcelona"""
     CODIGO_MUNICIPIO = "08019"
     try:
@@ -116,7 +121,8 @@ async def get_weather_aemet():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
     
-async def scrape_zumzeig() -> List[Dict]:
+@cached(cache_day, key=partial(hashkey, 'zumzeig'))
+def scrape_zumzeig() -> List[Dict]:
     """Scraping the website of Zumzeig Cine Cooperativa to get the moviez schedule"""
     try:
         url = "https://zumzeigcine.coop/es/cine/sesiones/"
@@ -139,7 +145,6 @@ async def scrape_zumzeig() -> List[Dict]:
             
             session_times = sessions[idx].find_all('div', class_='session')
             if not session_times: # this is the case when entrades properament a la venda
-                print("no session", movie)
                 # directors.pop(idx+1)
                 # movies.append(movie)
                 continue
@@ -152,7 +157,7 @@ async def scrape_zumzeig() -> List[Dict]:
                     # TODO filter movies after 19 on a weekday
                     movie["sessions"].append({
                         "day": day_of_week,
-                        "date": date_str,
+                        "date": date_str.rstrip('.25'),
                         "time": time_str
                     })
 

@@ -5,14 +5,13 @@ import {
   Group,
   Text,
   Grid,
-  MantineProvider,
   Container,
   Box,
   Stack,
+  Center,
 } from "@mantine/core";
-import { IconCloudRain, IconClock, IconCalendar } from "@tabler/icons-react";
 import { Line, Bar } from "react-chartjs-2";
-
+import RainProbGraph from "./RainProbGraph";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -36,11 +35,6 @@ ChartJS.register(
   Legend
 );
 
-const formatPeriod = (periodo) => {
-  return `${periodo.slice(0, 2)}:00 - ${periodo.slice(2)}:00`;
-};
-
-const formatHour = (hour) => `${hour}`;
 
 const WeatherDashboard = () => {
   const [weatherData, setWeatherData] = useState(null);
@@ -77,45 +71,56 @@ const WeatherDashboard = () => {
   if (!weatherData || !weatherData.data || weatherData.data.length === 0) {
     return <div className="text-yellow-800">No weather data available</div>;
   }
-  const RainProbCards = ({ probData }) => (
-    <Grid gutter="xs">
-      {probData.map((prob, index) => (
-        <Grid.Col key={index} span={12}>
-          <Paper p="xs" radius="md" withBorder>
-            <Group position="apart" spacing="xs">
-              <Group spacing="xs">
-                <IconClock size={16} />
-                <Text size="sm">{formatPeriod(prob.periodo)}</Text>
-              </Group>
-              <Group spacing="xs">
-                <IconCloudRain size={16} />
-                <Text fw={500}>{prob.value}%</Text>
-              </Group>
-              <Group spacing="xs">
-                <IconCalendar size={16} />
-                <Text size="sm">{prob.fecha}</Text>
-              </Group>
-            </Group>
-          </Paper>
-        </Grid.Col>
-      ))}
-    </Grid>
+
+  const rainProb = weatherData.data.flatMap((day) =>
+    day.prob_precipitacion.map((data) => ({
+      value: parseInt(data.value),
+      periodo: data.periodo,
+      fecha: day.fecha,
+    }))
   );
+  console.log("rainProb", rainProb);
+
   // Transform the weather data for the chart
   const chartData = weatherData.data[0].forecast_hourly.map((hourData) => ({
-    hour: formatHour(hourData.hour),
+    hour: hourData.hour,
     temperature: parseInt(hourData.temp),
     feelsLike: parseInt(hourData.feels_like),
     rain: parseInt(hourData.rain),
   }));
 
   const chartDataTmr = weatherData.data[1].forecast_hourly.map((hourData) => ({
-    hour: formatHour(hourData.hour),
+    hour: hourData.hour,
     temperature: parseInt(hourData.temp),
     feelsLike: parseInt(hourData.feels_like),
     rain: parseInt(hourData.rain),
   }));
 
+  // TODO: fix this when it's 0 hour, there is a bug when comparing current hour with item.hour
+  const getNext24HoursData = (currentDayData, nextDayData) => {
+    const currentHour = new Date().getHours();
+    console.log("currentHour", currentHour);
+    const currentDayRemaining = currentDayData.filter(
+      (item) => parseInt(item.hour) >= currentHour
+    );
+    console.log("currentDayRemaining", currentDayRemaining);
+    const nextDayNeeded = nextDayData
+      .filter((item) => item.hour <= currentHour)
+      .map((item) => ({
+        ...item,
+        hour: item.hour,
+      }));
+    console.log("nextDayNeeded", nextDayNeeded);
+    return [...currentDayRemaining, ...nextDayNeeded];
+  };
+
+  const todayTmrwData = getNext24HoursData(chartData, chartDataTmr);
+  console.log("tmr", chartDataTmr);
+  console.log("today", chartData);
+  console.log("today and tmr", todayTmrwData);
+
+  // TODO: all temperatures can be calculated from todayTmrwData
+  // Feels like and temp shall have distinct color gradient
   const allTemperatures = [
     ...chartData.map((data) => data.temperature),
     ...chartData.map((data) => data.feelsLike),
@@ -135,11 +140,9 @@ const WeatherDashboard = () => {
     return `hsla(${hue}, 80%, 60%, 0.9)`;
   };
 
-  const getCurrentWeather = () => {
+  const getCurrentTemperature = () => {
     const currentHour = new Date().getHours();
-    const currentData =
-      chartData.find((data) => data.hour == currentHour) ||
-      chartDataTmr.find((data) => data.hour == currentHour);
+    const currentData = todayTmrwData.find((data) => data.hour == currentHour);
 
     return currentData
       ? {
@@ -149,59 +152,44 @@ const WeatherDashboard = () => {
       : null;
   };
 
-  const temperatureData = {
-    labels: [
-      ...chartData.map((data) => data.hour),
-      ...chartDataTmr.map((data) => data.hour),
-    ],
+  const temperatureGraphData = {
+    labels: todayTmrwData.map((data) => `${data.hour}h`),
     datasets: [
       {
-        label: "Temperature",
-        data: [
-          ...chartData.map((data) => data.temperature),
-          ...chartDataTmr.map((data) => data.temperature),
-        ],
+        label: "Temperatura",
+        data: todayTmrwData.map((data) => data.temperature),
         segment: {
           borderColor: (ctx) => getTemperatureColor(ctx.p1.parsed.y),
         },
-        borderWidth: 3,
-        tension: 0.4,
+        borderWidth: 4,
+        tension: 0.3,
       },
       {
-        label: "Feels Like",
-        data: [
-          ...chartData.map((data) => data.feelsLike),
-          ...chartDataTmr.map((data) => data.feelsLike),
-        ],
+        label: "Sensanción térmica",
+        data: todayTmrwData.map((data) => data.feelsLike),
         segment: {
           borderColor: (ctx) => getTemperatureColor(ctx.p1.parsed.y),
         },
         borderDash: [5, 5],
-        borderWidth: 3,
-        tension: 0.4,
+        borderWidth: 4,
+        tension: 0.3,
       },
     ],
   };
 
   const precipitationData = {
-    labels: [
-      ...chartData.map((data) => data.hour),
-      ...chartDataTmr.map((data) => data.hour),
-    ],
+    labels: todayTmrwData.map((data) => `${data.hour}h`),
     datasets: [
       {
         label: "Lluvia",
-        data: [
-          ...chartData.map((data) => data.rain),
-          ...chartDataTmr.map((data) => data.rain),
-        ],
+        data: todayTmrwData.map((data) => data.rain),
         borderColor: "rgb(6, 146, 240)",
         backgroundColor: "rgba(6, 131, 214, 0.87)",
       },
     ],
   };
 
-  const temperatureOptions = {
+  const temperatureGraphOptions = {
     scales: {
       x: {
         ticks: {
@@ -219,13 +207,6 @@ const WeatherDashboard = () => {
         },
       },
     },
-    plugins: {
-      legend: {
-        display: true, // Hide legend
-      },
-    },
-    responsive: true,
-    maintainAspectRatio: true,
   };
 
   const precipitationOptions = {
@@ -243,61 +224,29 @@ const WeatherDashboard = () => {
         },
       },
     },
-    plugins: {
-      legend: {
-        display: true, // Hide legend
-      },
-    },
-    responsive: true,
-    maintainAspectRatio: true,
   };
-  const current = getCurrentWeather();
-  console.log("current", current);
-  const rainProb = weatherData.data.slice(0, 4).flatMap((day) =>
-    day.prob_precipitacion.map((data) => ({
-      value: parseInt(data.value),
-      periodo: data.periodo,
-      fecha: day.fecha,
-    }))
-  );
 
+  const current = getCurrentTemperature();
+  console.log("current", current);
+  // TODO: how to add bloody margin?
   return (
-    <Container fluid>
-      <Grid>
-        <Grid.Col span={{ base: 12, md: 8 }}>
-          <h5>Current Temperature: {current.temperature}°C</h5>
-          <h5>Feels Like: {current.feelsLike}°C</h5>
-          <Line data={temperatureData} options={temperatureOptions} />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, md: 4 }}>
-          <Grid>
-            <Grid.Col span={12}></Grid.Col>
-            <Grid.Col
-              span={8}
-              md={2}
-              style={{ display: "flex", flexDirection: "column" }}
-            >
-              <Box style={{ flex: "1 0 auto" }}>
-                <RainProbCards probData={rainProb} />
-              </Box>
-            </Grid.Col>
-            <Grid.Col
-              span={16}
-              md={10}
-              style={{ display: "flex", flexDirection: "column" }}
-            >
-              <Box style={{ flex: "1 0 auto" }}>
-                <Bar
-                  data={precipitationData}
-                  options={precipitationOptions}
-                  style={{ height: "100%" }}
-                />
-              </Box>
-            </Grid.Col>
-          </Grid>
-        </Grid.Col>
-      </Grid>
-    </Container>
+    <Grid>
+      <Grid.Col span={6}>
+            <Line
+              data={temperatureGraphData}
+              options={temperatureGraphOptions}
+            />
+            <Bar data={precipitationData} options={precipitationOptions} />
+            <Text ta="center" fw={500} fs="italic">
+          ahorita la temperatura es {current.temperature}°C y la sensaciò termica es {current.feelsLike}°C
+          </Text>
+      </Grid.Col>
+      <Grid.Col span={6}>
+        <Center>
+          <RainProbGraph probData={rainProb} />
+          </Center>
+      </Grid.Col>
+    </Grid>
   );
 };
 export default WeatherDashboard;

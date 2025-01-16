@@ -42,7 +42,7 @@ def get_movies():
 def get_events():
     """Get the events happening in Barcelona"""
     events_marula = scrape_marula()
-    return {"status": 200, "data": events_marula[:10]}
+    return {"status": 200, "data": events_marula[:20]}
 
 @cached(cache_day, key=partial(hashkey, 'marula'))
 def scrape_marula():
@@ -78,9 +78,9 @@ def scrape_marula():
 @cached(cache_hour, key=partial(hashkey, 'weather'))
 def get_weather_aemet():
     """Calls the AEMET API to get the weather forecast for Barcelona"""
-    CODIGO_MUNICIPIO = "08019"
+    CODIGO_MUNICIPIO = "08019" # 08019 is the code for Barcelona
     try:
-        url_aemet = f"https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/horaria/{CODIGO_MUNICIPIO}" # 08019 is the code for Barcelona
+        url_aemet = f"https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/horaria/{CODIGO_MUNICIPIO}" 
         querystring = {"api_key": API_KEY}
         headers = {'cache-control': "no-cache"}
         
@@ -104,14 +104,14 @@ def get_weather_aemet():
             prob_precipitacion = day.get("probPrecipitacion")
             forecast_by_date[fecha] = {"fecha": fecha, "forecast_hourly": [], "prob_precipitacion": prob_precipitacion}
             for temp, sens, prec in zip(temperatura, feels_like, precipitation):
-                # TODO: check is periodo of temp, sens and prec is the same
+                # TODO: check is periodo of temp, sens and prec is the same, that is to say if the hours match!
                 # if temp.get("periodo") != sens.get("periodo") or temp.get("periodo") != prec.get("periodo"):
                 #     raise HTTPException(status_code=500, detail="ServerError: periodo is not the same")
                 temp_val = temp.get("value")
                 sens_val = sens.get("value")
                 prec_val = prec.get("value")
                 hour = temp.get("periodo") # TODO: check that periodo is the same for all the values
-                forecast_data = {"hour": hour, "temp": temp_val, "feels_like": sens_val, "rain": prec_val}
+                forecast_data = {"hour": int(hour), "temp": temp_val, "feels_like": sens_val, "rain": prec_val}
                 forecast_by_date[fecha]["forecast_hourly"].append(forecast_data)
         # TODO: is there a more efficient way to do the above?
         return list(forecast_by_date.values())
@@ -154,8 +154,9 @@ def scrape_zumzeig() -> List[Dict]:
                 match = re.search(r'(\w{2}) (\d{1,2}\.\d{1,2}\.\d{1,2})\((\d{2}:\d{2})\)', date_time_str)
                 if match:
                     day_of_week, date_str, time_str = match.groups()
-                    # TODO filter movies after 19 on a weekday
+                    # TODO filter movies after 19:00h on weekdays
                     movie["sessions"].append({
+                        # TODO: day and date are redundant, merge them
                         "day": day_of_week,
                         "date": date_str.rstrip('.25'),
                         "time": time_str

@@ -1,19 +1,16 @@
 # SmarTablero
-Un tablero where I display "information" I care about but I am too lazy to look it up, like weather, events, news.
+Un tablero where I display "information" I care about but I am too lazy to look it up, like weather, events, maybe news?
 
-## TODO:
+## TODOs
 ### Frontend
-- Prettify, also for simplicity define screen size (?)
-- When it's night show next day concatenated with current one
+- Rain mm is currently an int and shall be converted to float, it's causing the chart to wrongly display 😞
+- Prettify ALL
 
-### Backend
-- Get data from news
-
-#### Weather
+#### Weather - ideas
 - Get `estadoCielo`
 - Get information about amanecer (`orto`) and atardecer (`ocaso`)
 - Get info about huimidty
-- Get informacio diaria for the coming days, it's from a different API call
+- Get informacio diaria, it's from a different API call of AEMET its forecasting more days ahead
 
 # Resources
 - Weather API [AEMET Open Data](https://opendata.aemet.es/centrodedescargas/inicio)

@@ -54,11 +54,11 @@ const EventsDashboard = () => {
 
   return (
     <Grid gutter="xl" type="container" justify="center">
-      <Grid.Col span={6} style={{ textAlign: 'center', margin: '40px 0' }}>
+      <Grid.Col span={6}>
         <h2 className="text-lg font-semibold">Marula Cafe</h2>
         <ConcertsList events={concertData} />
       </Grid.Col>
-      <Grid.Col span={6} style={{ textAlign: 'center', margin: '40px 0' }}>
+      <Grid.Col span={6}>
         <h2 className="text-lg font-semibold">Zumzeig</h2>
         <MoviesList movies={movieData} />
       </Grid.Col>

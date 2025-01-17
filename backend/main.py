@@ -36,13 +36,13 @@ def get_weather():
 def get_movies():
     """Get the moviez schedule from cinemas in barcelona"""
     movies = scrape_zumzeig()
-    return {"status": 200, "data": movies[:10]}
+    return {"status": 200, "data": movies}
 
 @app.get("/events")
 def get_events():
     """Get the events happening in Barcelona"""
     events_marula = scrape_marula()
-    return {"status": 200, "data": events_marula[:20]}
+    return {"status": 200, "data": events_marula}
 
 @cached(cache_day, key=partial(hashkey, 'marula'))
 def scrape_marula():

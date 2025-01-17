@@ -1,42 +1,46 @@
 import React from "react";
-import { Paper, Stack, Title, Text, Group, Badge, Grid } from "@mantine/core";
+import { Paper, Stack, Title, Text, Group, Badge, Grid, Divider } from "@mantine/core";
 import { IconCalendar } from "@tabler/icons-react";
 
-const MovieCard = ({ movie }) => (
-  <Paper p="md">
-    <Group align="flex-start" justify="space-between">
-      <Stack gap="xs">
-        <Title order={4}>{movie.title}</Title>
-        <Text size="sm" color="dimmed">
-          {movie.director}
-        </Text>
-      </Stack>
-      
-      <Stack gap={5}>
-        {movie.sessions.map((session, idx) => (
-          <Group key={idx} position="apart" align="center">
-            <Group gap={10} align="center">
-              <IconCalendar size={20} />
-              <Text size="sm">{session.day},</Text>
-              <Text size="sm">{session.date}</Text>
-            </Group>
-            <Badge variant="light" color="blue" radius="xl">
-              {session.time}
+const SessionsTable = ({ sessions }) => (
+   <Stack gap="xs">
+      {sessions.map((session, idx) => (
+         <Group key={idx} position="left" gap="sm">
+            <Text tt="uppercase" size="sm">
+               {session.day} {session.date}
+            </Text>
+            <Badge variant="outline" color="rgba(97, 49, 7, 0.65)" radius="md">
+               {session.time}
             </Badge>
-          </Group>
-        ))}
+         </Group>
+      ))}
+   </Stack>
+);
+
+const MovieCard = ({ movie }) => (
+   <Paper p="md" h="100%">
+      <Stack gap="md">
+         <Stack gap="xs">
+            <Title textWrap="wrap" order={4}>
+               {movie.title}
+            </Title>
+            <Text size="sm" fs="italic">
+               {movie.director}
+            </Text>
+         </Stack>
+         <SessionsTable sessions={movie.sessions} />
       </Stack>
-    </Group>
-  </Paper>
+   </Paper>
 );
 
 const MoviesList = ({ movies }) => (
-  <Grid gutter="md">
-    {movies.map((movie, index) => (
-      <Grid.Col key={index} span={6}>
-        <MovieCard movie={movie} />
-      </Grid.Col>
-    ))}
-  </Grid>
+   <Grid gutter="sm">
+      {movies.map((movie, index) => (
+         <Grid.Col key={index} span={4}>
+            <MovieCard movie={movie} />
+         </Grid.Col>
+      ))}
+   </Grid>
 );
+
 export default MoviesList;

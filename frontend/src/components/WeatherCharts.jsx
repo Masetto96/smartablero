@@ -60,17 +60,17 @@ export const getTemperatureGraphData = (todayTmrwData, getTemperatureColor) => (
   datasets: [
     {
       label: "Temperatura",
-      data: todayTmrwData.map((data) => data.temperature),
+      data: todayTmrwData.map((data) => data.temp),
       segment: {
         borderColor: (ctx) => getTemperatureColor(ctx.p1.parsed.y),
       },
       borderWidth: 4,
       tension: 0.3,
       pointRadius: 0,
-    },
+    },  
     {
       label: "Sensanción térmica",
-      data: todayTmrwData.map((data) => data.feelsLike),
+      data: todayTmrwData.map((data) => data.feels_like),
       segment: {
         borderColor: (ctx) => getTemperatureColor(ctx.p1.parsed.y),
       },

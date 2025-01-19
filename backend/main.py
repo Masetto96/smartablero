@@ -1,9 +1,10 @@
 import os
 import re
-from typing import List, Dict
+from typing import List, Dict, Any
 from functools import partial
 from datetime import datetime, timedelta
 import requests
+from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from bs4 import BeautifulSoup
@@ -26,11 +27,26 @@ app.add_middleware(
 cache_hour = TTLCache(maxsize=1024, ttl=timedelta(hours=1), timer=datetime.now)
 cache_day = TTLCache(maxsize=1024, ttl=timedelta(days=1), timer=datetime.now)
 
-@app.get("/weather")
+class ForecastResponse(BaseModel):
+    hour: int
+    temp: int
+    feels_like: int
+    rain: str
+    # sky: str
+    humidity: int
+
+class DailyForecastResponse(BaseModel):
+    fecha: str
+    forecast_hourly: List[ForecastResponse]
+    prob_precipitacion: Any
+    sunrise: str
+    sunset: str
+
+@app.get("/weather", response_model=List[DailyForecastResponse])
 def get_weather():
     """Get the weather forecast for Barcelona"""
     weather = get_weather_aemet()
-    return {"status": 200, "data": weather}
+    return weather
 
 @app.get("/movies")
 def get_movies():
@@ -92,26 +108,38 @@ def get_weather_aemet():
         response_datos = requests.get(datos_url, timeout=10)
         response_datos.raise_for_status()
         datos_json = response_datos.json()
+        # print(datos_json[0].get("prediccion").get("dia"))
         days = datos_json[0].get("prediccion").get("dia")
 
         forecast_by_date = {}
 
         for day in days:
             fecha = day.get("fecha")[:10] # Get only the date part
+            orto = day.get("orto")
+            ocaso = day.get("ocaso")
             temperatura = day.get("temperatura")
             feels_like = day.get("sensTermica")
             precipitation = day.get("precipitacion")
             prob_precipitacion = day.get("probPrecipitacion")
-            forecast_by_date[fecha] = {"fecha": fecha, "forecast_hourly": [], "prob_precipitacion": prob_precipitacion}
-            for temp, sens, prec in zip(temperatura, feels_like, precipitation):
+            # estado_cielo = day.get("estadoCielo")
+            humedad = day.get("humedadRelativa")
+            # viento = day.get("vientoAndRachaMax")
+            # print(viento)
+            forecast_by_date[fecha] = {"fecha": fecha, "forecast_hourly": [], "prob_precipitacion": prob_precipitacion, "sunrise": orto, "sunset": ocaso}
+            # for temp, sens, prec in zip(temperatura, feels_like, precipitation):
+            for idx, temp in enumerate(temperatura):
                 # TODO: check is periodo of temp, sens and prec is the same, that is to say if the hours match!
+                # I noticed that sometimes periodo can be irregular, that is the hours dont match! So we need to check this??!
                 # if temp.get("periodo") != sens.get("periodo") or temp.get("periodo") != prec.get("periodo"):
                 #     raise HTTPException(status_code=500, detail="ServerError: periodo is not the same")
                 temp_val = temp.get("value")
-                sens_val = sens.get("value")
-                prec_val = prec.get("value")
+                sens_val = feels_like[idx].get("value")
+                prec_val = precipitation[idx].get("value")
+                # sky = estado_cielo[idx]
+                hum = humedad[idx].get("value")
+                # wind = viento[idx]
                 hour = temp.get("periodo") # TODO: check that periodo is the same for all the values
-                forecast_data = {"hour": int(hour), "temp": temp_val, "feels_like": sens_val, "rain": prec_val}
+                forecast_data = {"hour": int(hour), "temp": temp_val, "feels_like": sens_val, "rain": prec_val, "humidity": hum} 
                 forecast_by_date[fecha]["forecast_hourly"].append(forecast_data)
         # TODO: is there a more efficient way to do the above?
         return list(forecast_by_date.values())

@@ -30,7 +30,12 @@ const theme = createTheme({
       Paper: {
          defaultProps: {
             radius: "md",
-            style: { backgroundColor: "rgba(255, 255, 255, 0.44)" },
+            shadow: "xs",
+            style: { 
+               backgroundColor: "rgba(255, 255, 255, 0.44)",
+               margin: "0.5rem",
+               padding: "0.5rem"
+            },
          },
       },
    },
@@ -48,11 +53,16 @@ function App() {
 
    return (
       <MantineProvider theme={theme}>
-         <div style={{ backgroundColor: theme.colors.background[0] }}>
+         <div style={{ 
+            backgroundColor: theme.colors.background[0],
+            margin: '2rem',
+            padding: '2rem',
+            minHeight: 'calc(100vh - 4rem)',
+            borderRadius: '1rem'
+         }}>
             <RotatingDisplay components={displayComponents} />
          </div>
       </MantineProvider>
    );
 }
-
 export default App;

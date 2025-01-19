@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Text, Grid, Stack } from "@mantine/core";
+import { Text, Grid, Stack, Card, Group, Paper, Container, Center } from "@mantine/core";
 import { Line, Bar } from "react-chartjs-2";
 import {
    getTemperatureGraphData,
@@ -8,7 +8,6 @@ import {
    precipitationOptions,
    RainProbGraph,
 } from "./WeatherCharts";
-
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import {
    Chart as ChartJS,
@@ -22,6 +21,7 @@ import {
    Legend,
    Filler,
 } from "chart.js";
+import { IconSunset, IconSunrise } from "@tabler/icons-react";
 
 ChartJS.register(
    Filler,
@@ -68,12 +68,12 @@ const WeatherDashboard = () => {
       return <div className="text-red-800">{error}</div>;
    }
 
-   if (!weatherData || !weatherData.data || weatherData.data.length === 0) {
+   if (!weatherData || weatherData.length === 0) {
       return <div className="text-yellow-800">No weather data available</div>;
    }
 
    // Data for the rainProb graph
-   const rainProb = weatherData.data.flatMap((day) =>
+   const rainProb = weatherData.flatMap((day) =>
       day.prob_precipitacion.map((data) => ({
          value: parseInt(data.value),
          periodo: data.periodo,
@@ -90,41 +90,43 @@ const WeatherDashboard = () => {
    });
 
    // Transform weather data for charts
-   const chartData = weatherData.data[0].forecast_hourly.map(transformHourlyData);
-   const chartDataTmr = weatherData.data[1].forecast_hourly.map(transformHourlyData);
+   const chartData = weatherData[0].forecast_hourly.map(transformHourlyData);
+   const chartDataTmr = weatherData[1].forecast_hourly.map(transformHourlyData);
 
-   const getNext24HoursData = (currentDayData, nextDayData) => {
-      const currentHour = new Date().getHours();
-
-      // Handle midnight case specially
-      const currentDayRemaining = currentDayData.filter((item) =>
-         currentHour === 0 ? true : parseInt(item.hour) >= currentHour
-      );
-
-      const nextDayNeeded =
-         currentHour === 0
-            ? []
-            : nextDayData
-                 .filter((item) => parseInt(item.hour) < currentHour)
-                 .map((item) => ({
-                    ...item,
-                    hour: parseInt(item.hour),
-                 }));
-
-      return [...currentDayRemaining, ...nextDayNeeded];
+   const getCurrentDate = () => {
+      const date = new Date();
+      return date.toISOString().split("T")[0];
    };
 
-   const todayTmrwData = getNext24HoursData(chartData, chartDataTmr);
-   console.log("tmr", chartDataTmr);
-   console.log("today", chartData);
-   console.log("today and tmr", todayTmrwData);
+   const currentDate = getCurrentDate();
+   console.log("currentFecha", currentDate);
 
-   const allTemperatures = [
-      ...chartData.map((data) => data.temperature),
-      ...chartData.map((data) => data.feelsLike),
-      ...chartDataTmr.map((data) => data.temperature),
-      ...chartDataTmr.map((data) => data.feelsLike),
-   ];
+   const getNext24HoursData = (weatherData) => {
+      const currentDate = getCurrentDate();
+      const currentHour = new Date().getHours();
+
+      let combinedData = [];
+
+      for (let i = 0; i < 2; i++) {
+         const dayData = weatherData[i];
+         if (dayData.fecha === currentDate) {
+            const currentDayRemaining = dayData.forecast_hourly.filter((item) => parseInt(item.hour) >= currentHour);
+            combinedData = [...combinedData, ...currentDayRemaining];
+         } else {
+            const nextDayNeeded = dayData.forecast_hourly.filter((item) => parseInt(item.hour) < currentHour);
+            combinedData = [...combinedData, ...nextDayNeeded];
+         }
+      }
+
+      console.log("todayTmrwData", combinedData);
+      return combinedData;
+   };
+
+   console.log("today", chartData);
+   console.log("tmr", chartDataTmr);
+   const todayTmrwData = getNext24HoursData(weatherData);
+
+   const allTemperatures = [...todayTmrwData.map((data) => data.temp), ...todayTmrwData.map((data) => data.feels_like)];
 
    const minTemp = Math.floor(Math.min(...allTemperatures));
    const maxTemp = Math.ceil(Math.max(...allTemperatures));
@@ -140,12 +142,12 @@ const WeatherDashboard = () => {
 
    const getCurrentTemperature = () => {
       const currentHour = new Date().getHours();
-      const currentData = todayTmrwData.find((data) => data.hour == currentHour);
-
+      console.log("currentHour", currentHour);
+      const currentData = todayTmrwData.find((data) => data.hour === currentHour);
       return currentData
          ? {
-              temperature: currentData.temperature,
-              feelsLike: currentData.feelsLike,
+              temperature: currentData.temp,
+              feelsLike: currentData.feels_like,
            }
          : null;
    };
@@ -164,9 +166,25 @@ const WeatherDashboard = () => {
          <Grid.Col span={6}>
             <Stack>
                <RainProbGraph probData={rainProb} plugins={ChartDataLabels} />
-               <Text ta="center" fw={500} fs="italic">
+               <Text ta="center" fs="italic">
                   ahorita la temperatura es {current.temperature}°C y la sensaciò termica es {current.feelsLike}°C
                </Text>
+               <Container>
+                  <Group>
+                     <Paper shadow="lg">
+                        <Center>
+                           <IconSunrise size={40} stroke={1} />
+                           <Text>{weatherData[0].sunrise}</Text>
+                        </Center>
+                     </Paper>
+                     <Paper shadow="lg">
+                        <Center>
+                           <IconSunset size={40} stroke={1} />
+                           <Text>{weatherData[0].sunset}</Text>
+                        </Center>
+                     </Paper>
+                  </Group>
+               </Container>
             </Stack>
          </Grid.Col>
       </Grid>

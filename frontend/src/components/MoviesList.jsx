@@ -1,40 +1,40 @@
 import React from "react";
-import { Paper, Stack, Title, Text, Group, Badge, Grid, Divider } from "@mantine/core";
+import { Paper, Stack, Title, Text, Group, Badge, Grid, Divider, Center } from "@mantine/core";
 import { IconCalendar } from "@tabler/icons-react";
 
 const SessionsTable = ({ sessions }) => (
-   <Stack gap="xs">
-      {sessions.map((session, idx) => (
-         <Group key={idx} position="left" gap="sm">
-            <Text tt="uppercase" size="sm">
-               {session.day} {session.date}
-            </Text>
-            <Badge variant="outline" color="rgba(97, 49, 7, 0.65)" radius="md">
-               {session.time}
-            </Badge>
+   <Grid>
+     {sessions.map((session, idx) => (
+       <Grid.Col key={idx} span={4}>
+         <Group justify="center" gap="sm">
+           <Text tt="uppercase" size="sm">
+             {session.day} {session.date}
+           </Text>
+           <Badge variant="outline" color="rgba(97, 49, 7, 0.65)" radius="md">
+             {session.time}
+           </Badge>
          </Group>
-      ))}
-   </Stack>
-);
+       </Grid.Col>
+     ))}
+   </Grid>
+ );
 
 const MovieCard = ({ movie }) => (
    <Paper p="md" h="100%">
-      <Stack gap="md">
-         <Stack gap="xs">
-            <Title textWrap="wrap" order={4}>
+         <Stack gap="md">
+            <Title textWrap="wrap" order={4} ta="center">
                {movie.title}
             </Title>
-            <Text size="sm" fs="italic">
+            <Text size="sm" fs="italic" ta="center">
                {movie.director}
             </Text>
-         </Stack>
          <SessionsTable sessions={movie.sessions} />
       </Stack>
    </Paper>
 );
 
 const MoviesList = ({ movies }) => (
-   <Grid gutter="sm">
+   <Grid gutter="xs">
       {movies.map((movie, index) => (
          <Grid.Col key={index} span={4}>
             <MovieCard movie={movie} />

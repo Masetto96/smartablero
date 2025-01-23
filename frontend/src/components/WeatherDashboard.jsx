@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Text, Grid, Stack, Card, Group, Paper, Container, Center } from "@mantine/core";
+import { Text, Grid, Stack, Card, Group, Paper, Container, Center, Space } from "@mantine/core";
 import { Line, Bar } from "react-chartjs-2";
 import {
    getTemperatureGraphData,
@@ -154,16 +154,17 @@ const WeatherDashboard = () => {
 
    const current = getCurrentTemperature();
    console.log("current", current);
-   // TODO: how to add bloody margin?
    return (
       <Grid>
          <Grid.Col span={6}>
+            <Space h="sm" />
             <Stack gap="md">
                <Line data={temperatureGraphData} options={temperatureGraphOptions} />
                <Bar data={precipitationData} options={precipitationOptions} />
             </Stack>
          </Grid.Col>
          <Grid.Col span={6}>
+            <Space h="sm" />
             <Stack>
                <RainProbGraph probData={rainProb} plugins={ChartDataLabels} />
                <Text ta="center" fs="italic">

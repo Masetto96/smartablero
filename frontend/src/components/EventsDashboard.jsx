@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Grid, Text, Stack, Box, Group, Center } from "@mantine/core";
+import { Grid, Text, Stack, Box, Group, Center, Space } from "@mantine/core";
 import ConcertsList from "./ConcertsList";
 import MoviesList from "./MoviesList";
 import marulaCafeLogo from "../assets/Logo-Marula-Cafe.png";
@@ -55,45 +55,23 @@ const EventsDashboard = () => {
    }
 
    return (
-      <Grid
-         gutter="xl"
-         p="md"
-         h="100vh"
-         style={{
-            maxHeight: "1080px",
-            overflow: "hidden",
-         }}
-      >
+      <Grid overflow="hidden">
          <Grid.Col span={6}>
-            <Stack h="100%">
+            <Stack>
+               <Space h="xs" />
                <Center>
                   <img src={marulaCafeLogo} alt="marula" style={{ maxHeight: "65px" }} />
                </Center>
-
-               <Box
-                  style={{
-                     // overflowY: "auto",
-                     maxHeight: "calc(1080px - 4rem)", // Account for header and padding
-                  }}
-               >
-                  <ConcertsList events={concertData} />
-               </Box>
+               <ConcertsList events={concertData} />
             </Stack>
          </Grid.Col>
-
          <Grid.Col span={6}>
-            <Stack h="100%">
+            <Stack>
+               <Space h="xs" />
                <Center>
                   <img src={zumzeigLogo} alt="zumzeig" style={{ maxHeight: "65px", borderRadius: "20%" }} />
                </Center>
-               <Box
-                  style={{
-                     // overflowY: "auto",
-                     maxHeight: "calc(1080px - 4rem)", // Account for header and padding
-                  }}
-               >
-                  <MoviesList movies={movieData} />
-               </Box>
+               <MoviesList movies={movieData} />
             </Stack>
          </Grid.Col>
       </Grid>

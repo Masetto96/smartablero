@@ -52,13 +52,13 @@ def get_weather():
 def get_movies():
     """Get the moviez schedule from cinemas in barcelona"""
     movies = scrape_zumzeig()
-    return {"status": 200, "data": movies}
+    return {"status": 200, "data": movies[:15]}
 
 @app.get("/events")
 def get_events():
     """Get the events happening in Barcelona"""
     events_marula = scrape_marula()
-    return {"status": 200, "data": events_marula}
+    return {"status": 200, "data": events_marula[:15]}
 
 @cached(cache_day, key=partial(hashkey, 'marula'))
 def scrape_marula():
@@ -184,9 +184,7 @@ def scrape_zumzeig() -> List[Dict]:
                     day_of_week, date_str, time_str = match.groups()
                     # TODO filter movies after 19:00h on weekdays
                     movie["sessions"].append({
-                        # TODO: day and date are redundant, merge them
-                        "day": day_of_week,
-                        "date": date_str.rstrip('.25'),
+                        "day": f"{day_of_week} {date_str.rstrip('.25')}",
                         "time": time_str
                     })
 
@@ -194,7 +192,7 @@ def scrape_zumzeig() -> List[Dict]:
         return movies
         
     except requests.RequestException as e:
-        raise HTTPException(status_code=503, detail=f"Failed to fetch movie data: {str(e)}")
+        raise HTTPException(status_code=503, detail=f"Failed to fetch movie data: {str(e)}") from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}") from e
 

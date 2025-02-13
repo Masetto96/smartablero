@@ -13,6 +13,7 @@
     "@mantine/charts": "^7.16.0",
     "@mantine/core": "^7.16.0",
     "@mantine/dates": "^7.16.0",
+    "@tabler/icons": "^3.30.0",
     "@tabler/icons-react": "^3.28.1",
     "chart.js": "^4.4.7",
     "chartjs-plugin-datalabels": "^2.2.0",

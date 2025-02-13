@@ -7,3 +7,7 @@
     height: 100%;
     width: 100%;
   } */
+
+.dotted-underline {
+    border-bottom: 3px dotted;
+}

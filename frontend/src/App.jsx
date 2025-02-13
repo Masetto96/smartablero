@@ -21,11 +21,21 @@ const RotatingDisplay = ({ components, intervalMs = 90000 }) => {
    return <>{components[currentIndex]}</>;
 };
 
+// const colorPalette = {
+//    faluRed: ["rgba(114, 24, 23, 1)"],
+//    frenchGray: ["rgba(207, 199, 210, 1)"],
+//    prussianBlue: ["rgba(14, 39, 60, 1)"],
+//    khaki: ["rgba(158, 152, 133, 1)"],
+// };
 const colorPalette = {
-   faluRed: ["rgba(114, 24, 23, 1)"],
-   frenchGray: ["rgba(207, 199, 210, 1)"],
-   prussianBlue: ["rgba(14, 39, 60, 1)"],
-   khaki: ["rgba(158, 152, 133, 1)"],
+   backgroundDark: ["rgba(43, 43, 43, 1)"],    // Charcoal  
+   backgroundLight: ["rgba(73, 73, 73, 0.62)"],   // Slightly Lighter Grayish Blue  
+   textPrimary: ["rgba(234, 234, 234, 1)"],   // Off-White  
+   textSecondary: ["rgba(166, 172, 200, 1)"], // Muted Blue Gray  
+   accentPrimary: ["rgba(247, 118, 142, 1)"], // Soft Red  
+   accentSuccess: ["rgba(158, 206, 106, 1)"], // Green  
+   accentInfo: ["rgba(122, 162, 247, 1)"],    // Blue  
+   accentWarning: ["rgba(224, 175, 104, 1)"], // Warm Yellow  
 };
 
 const theme = createTheme({
@@ -37,15 +47,16 @@ const theme = createTheme({
    components: {
       Text: {
          defaultProps: {
-            c: colorPalette.khaki[0],
+            c: colorPalette.textSecondary[0],
+            ta: "center",
          },
-      }, // <-- Added missing comma and closing brace
+      },
       Paper: {
          defaultProps: {
             radius: "md",
             shadow: "xs",
             style: {
-               backgroundColor: "rgba(255, 255, 255, 0.1)",
+               backgroundColor: colorPalette.backgroundLight[0],
                margin: "0.5rem",
                padding: "0.5rem",
             },
@@ -63,7 +74,7 @@ function App() {
 
    return (
       <MantineProvider theme={theme}>
-         <Container fluid h={1920} style={{ backgroundColor: theme.colors.prussianBlue[0]}}>
+         <Container fluid h={1920} style={{ backgroundColor: theme.colors.backgroundDark[0]}}>
             <RotatingDisplay components={displayComponents} />
          </Container>
       </MantineProvider>

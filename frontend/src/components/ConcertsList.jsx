@@ -8,16 +8,16 @@ const ConcertCard = ({ event }) => {
    return (
       <Paper p="md" h="100%">
          <Stack spacing="xs" align="center">
-            <Text size="lg" ta="center" fw={500} c={theme.colors.faluRed[0]}>
+            <Text size="lg" c={theme.colors.textPrimary[0]}>
                {event.title}
             </Text>
             <Group gap={4}>
-               <IconCalendar size={20} color={theme.colors.black} />
-               <Text size="sm" tt="uppercase" c={theme.colors.faluRed[0]}>
+               <IconCalendar size={20} color={theme.colors.accentInfo[0]} />
+               <Text size="sm" tt="uppercase" c={theme.colors.accentPrimary[0]}>
                   {event.date}
                </Text>
             </Group>
-            <Text size="sm" ta="center">
+            <Text size="sm" c={theme.colors.textSecondary[0]}>
                {event.subtitle}
             </Text>
          </Stack>

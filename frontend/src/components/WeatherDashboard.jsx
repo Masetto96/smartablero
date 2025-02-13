@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Text, Grid, Stack, Card, Group, Paper, Container, Center, Space } from "@mantine/core";
-import { Line, Bar } from "react-chartjs-2";
+import { Text, Grid, Stack, Card, Group, Paper, Container, Center, Space, useMantineTheme } from "@mantine/core";
 import {
-   getTemperatureGraphData,
-   temperatureGraphOptions,
-   getPrecipitationData,
-   precipitationOptions,
+   TemperatureGraph,
+   CurrentDayInfo,
    RainProbGraph,
+   PrecipitationGraph
 } from "./WeatherCharts";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import {
@@ -21,7 +19,6 @@ import {
    Legend,
    Filler,
 } from "chart.js";
-import { IconSunset, IconSunrise } from "@tabler/icons-react";
 
 ChartJS.register(
    Filler,
@@ -40,6 +37,7 @@ const WeatherDashboard = () => {
    const [weatherData, setWeatherData] = useState(null);
    const [isLoading, setIsLoading] = useState(true);
    const [error, setError] = useState(null);
+   const theme = useMantineTheme();
 
    useEffect(() => {
       const fetchWeatherData = async () => {
@@ -136,56 +134,35 @@ const WeatherDashboard = () => {
       const hue = 240 - normalizedTemp * 240;
       return `hsla(${hue}, 80%, 60%, 0.9)`;
    };
-
-   const temperatureGraphData = getTemperatureGraphData(todayTmrwData, getTemperatureColor);
-   const precipitationData = getPrecipitationData(todayTmrwData);
-
+   
    const getCurrentTemperature = () => {
       const currentHour = new Date().getHours();
       console.log("currentHour", currentHour);
       const currentData = todayTmrwData.find((data) => data.hour === currentHour);
       return currentData
-         ? {
+      ? {
               temperature: currentData.temp,
               feelsLike: currentData.feels_like,
-           }
-         : null;
-   };
+            }
+            : null;
+         };
 
    const current = getCurrentTemperature();
    console.log("current", current);
    return (
       <Grid>
          <Grid.Col span={6}>
-            <Space h="sm" />
-            <Stack gap="md">
-               <Line data={temperatureGraphData} options={temperatureGraphOptions} />
-               <Bar data={precipitationData} options={precipitationOptions} />
+            <Space h="xl" />
+            <Stack gap="xl">
+            <TemperatureGraph todayTmrwData={todayTmrwData} getTemperatureColor={getTemperatureColor} />
+            <PrecipitationGraph todayTmrwData={todayTmrwData}/>
             </Stack>
          </Grid.Col>
          <Grid.Col span={6}>
-            <Space h="sm" />
-            <Stack>
+            <Space h="xl" />
+            <Stack gap="xl">
                <RainProbGraph probData={rainProb} plugins={ChartDataLabels} />
-               <Text ta="center" fs="italic">
-                  ahorita la temperatura es {current.temperature}°C y la sensaciò termica es {current.feelsLike}°C
-               </Text>
-               <Container>
-                  <Group>
-                     <Paper shadow="lg">
-                        <Center>
-                           <IconSunrise size={40} stroke={1} />
-                           <Text>{weatherData[0].sunrise}</Text>
-                        </Center>
-                     </Paper>
-                     <Paper shadow="lg">
-                        <Center>
-                           <IconSunset size={40} stroke={1} />
-                           <Text>{weatherData[0].sunset}</Text>
-                        </Center>
-                     </Paper>
-                  </Group>
-               </Container>
+               <CurrentDayInfo current={current} weatherData={weatherData} />
             </Stack>
          </Grid.Col>
       </Grid>

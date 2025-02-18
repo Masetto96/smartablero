@@ -41,11 +41,12 @@ class DailyForecastResponse(BaseModel):
     prob_precipitacion: Any
     sunrise: str
     sunset: str
+    viento: Any
 
 @app.get("/weather", response_model=List[DailyForecastResponse])
 def get_weather():
     """Get the weather forecast for Barcelona"""
-    weather = get_weather_aemet()
+    weather = get_weather_aemet_horaria()
     return weather
 
 @app.get("/movies")
@@ -92,7 +93,7 @@ def scrape_marula():
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @cached(cache_hour, key=partial(hashkey, 'weather'))
-def get_weather_aemet():
+def get_weather_aemet_horaria():
     """Calls the AEMET API to get the weather forecast for Barcelona"""
     CODIGO_MUNICIPIO = "08019" # 08019 is the code for Barcelona
     try:
@@ -108,7 +109,7 @@ def get_weather_aemet():
         response_datos = requests.get(datos_url, timeout=10)
         response_datos.raise_for_status()
         datos_json = response_datos.json()
-        # print(datos_json[0].get("prediccion").get("dia"))
+        # this is where the actual prediction for each day is, the rest is metadata
         days = datos_json[0].get("prediccion").get("dia")
 
         forecast_by_date = {}
@@ -121,28 +122,32 @@ def get_weather_aemet():
             feels_like = day.get("sensTermica")
             precipitation = day.get("precipitacion")
             prob_precipitacion = day.get("probPrecipitacion")
-            # estado_cielo = day.get("estadoCielo")
             humedad = day.get("humedadRelativa")
-            # viento = day.get("vientoAndRachaMax")
-            # print(viento)
-            forecast_by_date[fecha] = {"fecha": fecha, "forecast_hourly": [], "prob_precipitacion": prob_precipitacion, "sunrise": orto, "sunset": ocaso}
-            # for temp, sens, prec in zip(temperatura, feels_like, precipitation):
+            viento = day.get("vientoAndRachaMax")
+            forecast_by_date[fecha] = {"fecha": fecha, "forecast_hourly": [], "prob_precipitacion": prob_precipitacion, "sunrise": orto, "sunset": ocaso, "viento": viento}
             for idx, temp in enumerate(temperatura):
-                # TODO: check is periodo of temp, sens and prec is the same, that is to say if the hours match!
-                # I noticed that sometimes periodo can be irregular, that is the hours dont match! So we need to check this??!
-                # if temp.get("periodo") != sens.get("periodo") or temp.get("periodo") != prec.get("periodo"):
-                #     raise HTTPException(status_code=500, detail="ServerError: periodo is not the same")
+                # probably one of the ugliest code I've ever written
+                # it is handling the case in which the hour of temperature data does not match the precipitation data
+                if temp.get("periodo") != feels_like[idx].get("periodo") or temp.get("periodo") != humedad[idx].get("periodo"):
+                    raise HTTPException(status_code=500, detail="ServerError: periodo is not the same")
+                try:
+                    if temp.get("periodo") != precipitation[idx].get("periodo"):
+                        if temp.get("periodo") == precipitation[idx+1].get("periodo"):
+                            prec_val = precipitation[idx+1].get("value")
+                        else:
+                            prec_val = precipitation[idx].get("value")
+                    else:
+                        prec_val = precipitation[idx].get("value")
+                except IndexError:
+                    prec_val = None
+                
                 temp_val = temp.get("value")
                 sens_val = feels_like[idx].get("value")
-                prec_val = precipitation[idx].get("value")
-                # sky = estado_cielo[idx]
                 hum = humedad[idx].get("value")
-                # wind = viento[idx]
-                hour = temp.get("periodo") # TODO: check that periodo is the same for all the values
+                hour = temp.get("periodo")
                 forecast_data = {"hour": int(hour), "temp": temp_val, "feels_like": sens_val, "rain": prec_val, "humidity": hum} 
                 forecast_by_date[fecha]["forecast_hourly"].append(forecast_data)
-        # TODO: is there a more efficient way to do the above?
-        return list(forecast_by_date.values())
+        return forecast_by_date.values()
     
     except requests.RequestException as e:
         raise HTTPException(status_code=503, detail=f"Failed to fetch weather data: {str(e)}")

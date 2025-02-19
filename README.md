@@ -3,8 +3,7 @@ Un tablero where I display things I am too lazy to look up, like weather, events
 
 #### Weather - ideas
 - Display info about huimidty
-- Get `estadoCielo` and wind
-- Get informacio diaria, it's from a different API call of AEMET its forecasting more days ahead
+- Display info about the 2 next upcoming days
 - Add pointer in graph for current time
 
 # Resources

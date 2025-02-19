@@ -69,7 +69,7 @@ const theme = createTheme({
 function App() {
    const displayComponents = [
       <WeatherDashboard key="weather" />,
-      // <EventsDashboard key="events" />,
+      <EventsDashboard key="events" />,
    ];
 
    return (

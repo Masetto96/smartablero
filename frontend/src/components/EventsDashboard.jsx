@@ -14,7 +14,7 @@ const EventsDashboard = () => {
    useEffect(() => {
       const fetchMovieData = async () => {
          try {
-            const response = await fetch("http://backend:8000/movies");
+            const response = await fetch("api/movies");
             if (!response.ok) {
                throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -29,7 +29,7 @@ const EventsDashboard = () => {
 
       const fetchConcertData = async () => {
          try {
-            const response = await fetch("http://backend:8000/events");
+            const response = await fetch("api/events");
             if (!response.ok) {
                throw new Error(`HTTP error! status: ${response.status}`);
             }

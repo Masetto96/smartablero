@@ -42,7 +42,7 @@ const WeatherDashboard = () => {
    useEffect(() => {
       const fetchWeatherData = async () => {
          try {
-            const response = await fetch("http://backend:8000/weather");
+            const response = await fetch("api/weather");
             if (!response.ok) {
                throw new Error(`HTTP error! status: ${response.status}`);
             }

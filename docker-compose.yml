@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.0'
 
 services:
   frontend:
@@ -6,13 +6,6 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
-    environment:
-      NODE_OPTIONS: "--max-old-space-size=512"  # Limit memory usage for Node.js
-    deploy:
-      resources:
-        limits:
-          cpus: "2.0"  # Allow up to 2 CPU cores
-          memory: "750M"  # Limit to 750MB to avoid RAM exhaustion
 
   backend:
     build: ./backend
@@ -21,10 +14,3 @@ services:
     volumes:
       - ./backend:/app
     restart: unless-stopped
-    environment:
-      UVICORN_WORKERS: "3"  # Use up to 3 workers for better performance
-    deploy:
-      resources:
-        limits:
-          cpus: "2.0"  # Allow up to 2 CPU cores
-          memory: "1G"  # Allow up to 1GB RAM

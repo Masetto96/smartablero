@@ -1,0 +1,18 @@
+version: '3.0'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev  # Use dev Dockerfile
+    volumes:
+      - ./frontend:/app  # Live code reloading
+    environment:
+      - NODE_ENV=development
+
+  backend:
+    volumes:
+      - ./backend:/app  # Live code reloading
+    environment:
+      - DEBUG=True
+      - RELOAD=True

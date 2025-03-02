@@ -26,13 +26,12 @@ app.add_middleware(
 
 cache_hour = TTLCache(maxsize=1024, ttl=timedelta(hours=1), timer=datetime.now)
 cache_day = TTLCache(maxsize=1024, ttl=timedelta(days=1), timer=datetime.now)
-
 class ForecastResponse(BaseModel):
     hour: int
     temp: int
     feels_like: int
     rain: str
-    # sky: str
+    sky: str
     humidity: int
 
 class DailyForecastResponse(BaseModel):

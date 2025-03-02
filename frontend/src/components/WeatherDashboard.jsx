@@ -42,8 +42,8 @@ const WeatherDashboard = () => {
    useEffect(() => {
       const fetchWeatherData = async () => {
          try {
-            // const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/weather`);
-            const response = await fetch("api/weather");
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/weather`);
+            // const response = await fetch("api/weather");
 
             if (!response.ok) {
                throw new Error(`HTTP error! status: ${response.status}`);
@@ -163,7 +163,7 @@ const WeatherDashboard = () => {
             <Space h="xl" />
             <Stack gap="xl">
                <RainProbGraph probData={rainProb} plugins={ChartDataLabels} />
-               {/* <CurrentDayInfo current={current} weatherData={weatherData} /> */}
+               {/* <Text>CIAOO</Text> */}
                {current && <CurrentDayInfo current={current} weatherData={weatherData} />}
             </Stack>
          </Grid.Col>

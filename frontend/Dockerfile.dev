@@ -1,0 +1,19 @@
+# Development Dockerfile (hot reloading)
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files first to leverage caching
+COPY package.json package-lock.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy application code
+COPY . .
+
+# Expose dev server port (e.g., 3000 for CRA, 5173 for Vite)
+EXPOSE 5173
+
+# Start development server
+CMD ["npm", "run", "dev", "--", "--host"]

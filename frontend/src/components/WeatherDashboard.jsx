@@ -81,9 +81,9 @@ const WeatherDashboard = () => {
    console.log("rainProb", rainProb);
 
    const transformHourlyData = (hourData) => ({
-      hour: parseInt(hourData.hour),
-      temperature: parseInt(hourData.temp),
-      feelsLike: parseInt(hourData.feels_like),
+      hour: parseInt(hourData.hour, 10),
+      temperature: parseInt(hourData.temp, 10),
+      feelsLike: parseInt(hourData.feels_like, 10),
       rain: parseFloat(hourData.rain).toFixed(1),
    });
 
@@ -138,14 +138,14 @@ const WeatherDashboard = () => {
    const getCurrentTemperature = () => {
       const currentHour = new Date().getHours();
       console.log("currentHour", currentHour);
-      const currentData = todayTmrwData.find((data) => data.hour === currentHour);
+      const currentData = todayTmrwData.find((data) => parseInt(data.hour) === currentHour);
       return currentData
-      ? {
-              temperature: currentData.temp,
-              feelsLike: currentData.feels_like,
+         ? {
+              temperature: currentData.temperature,
+              feelsLike: currentData.feelsLike,
             }
-            : null;
-         };
+         : null;
+   };
 
    const current = getCurrentTemperature();
    console.log("current", current);
@@ -162,7 +162,8 @@ const WeatherDashboard = () => {
             <Space h="xl" />
             <Stack gap="xl">
                <RainProbGraph probData={rainProb} plugins={ChartDataLabels} />
-               <CurrentDayInfo current={current} weatherData={weatherData} />
+               {/* <CurrentDayInfo current={current} weatherData={weatherData} /> */}
+               {current && <CurrentDayInfo current={current} weatherData={weatherData} />}
             </Stack>
          </Grid.Col>
       </Grid>

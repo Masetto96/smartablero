@@ -4,7 +4,7 @@ import "@mantine/dates/styles.css";
 import React, { useState, useEffect } from "react";
 import WeatherDashboard from "./components/WeatherDashboard";
 import EventsDashboard from "./components/EventsDashboard";
-import { Container, MantineProvider, Paper } from "@mantine/core";
+import { Container, MantineProvider, Paper, Button, Group } from "@mantine/core";
 import { createTheme } from "@mantine/core";
 
 const RotatingDisplay = ({ components, intervalMs = 90000 }) => {
@@ -18,7 +18,35 @@ const RotatingDisplay = ({ components, intervalMs = 90000 }) => {
       return () => clearInterval(interval);
    }, [components.length, intervalMs]);
 
-   return <>{components[currentIndex]}</>;
+   useEffect(() => {
+      const handleKeyDown = (event) => {
+         if (event.key === "ArrowRight") {
+            handleNext();
+         } else if (event.key === "ArrowLeft") {
+            handlePrev();
+         }
+      };
+
+      window.addEventListener("keydown", handleKeyDown);
+
+      return () => {
+         window.removeEventListener("keydown", handleKeyDown);
+      };
+   }, [components.length]);
+
+   const handleNext = () => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % components.length);
+   };
+
+   const handlePrev = () => {
+      setCurrentIndex((prevIndex) => (prevIndex - 1 + components.length) % components.length);
+   };
+
+   return (
+      <>
+         {components[currentIndex]}
+      </>
+   );
 };
 
 const colorPalette = {

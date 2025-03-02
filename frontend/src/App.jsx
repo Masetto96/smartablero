@@ -89,7 +89,10 @@ const theme = createTheme({
 });
 
 function App() {
-   const displayComponents = [<WeatherDashboard key="weather" />, <EventsDashboard key="events" />];
+   const displayComponents = [
+   <WeatherDashboard key="weather" />
+   // ,<EventsDashboard key="events" />
+   ];
 
    return (
       <MantineProvider theme={theme}>

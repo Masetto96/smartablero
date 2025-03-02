@@ -1,16 +1,16 @@
 import { Line, Bar } from "react-chartjs-2";
 import { Text, Stack, useMantineTheme, Container, Group, Paper, Center } from "@mantine/core";
-import { IconSunrise, IconSunset, IconTemperature, IconThermometer } from '@tabler/icons-react';
+import { IconSunrise, IconSunset, IconTemperature, IconThermometer } from "@tabler/icons-react";
 
 import "../App.css";
 
 const formatPeriod = (periodo, fecha) => {
-  const date = new Date(fecha);
-  const formattedDate = date.toLocaleDateString("es-ES", {
-    day: "numeric",
-    month: "short",
-  });
-  return `${formattedDate}\n (${periodo.slice(0, 2)}-${periodo.slice(2)})`;
+   const date = new Date(fecha);
+   const formattedDate = date.toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "short",
+   });
+   return `${formattedDate} (h${periodo.slice(0, 2)}-${periodo.slice(2)})`;
 };
 
 export const RainProbGraph = ({ probData }) => {
@@ -23,7 +23,7 @@ export const RainProbGraph = ({ probData }) => {
             label: "Probabilidad de precipitación",
             data: probData.map((prob) => prob.value),
             borderColor: "rgba(75, 192, 192, 0.53)",
-            backgroundColor: "rgba(92, 173, 173, 0.21)", // Add this line to set the fill color
+            backgroundColor: "rgba(92, 173, 173, 0.26)", // Add this line to set the fill color
             fill: true,
             pointRadius: 1,
          },
@@ -33,25 +33,26 @@ export const RainProbGraph = ({ probData }) => {
    const options = {
       plugins: {
          legend: {
-        display: false,
-      },
-      datalabels: {
-        display: true,
-        color: theme.colors.textSecondary[0],
-        align: "top",
-        formatter: (value) => `${value}%`,
-        backgroundColor: theme.colors.backgroundLight[0],
-        borderRadius: 10,
-        padding:5,
-        pointRadius: 0,
+            display: false,
+         },
+         datalabels: {
+            display: true,
+            color: theme.colors.textPrimary[0],
+            //   align: "bottom",
+            formatter: (value) => `${value}%`,
+            backgroundColor: "rgba(34, 65, 65, 0.95)", // Add this line to set the fill color
+            // backgroundColor: theme.colors.backgroundLight[0],
+            borderRadius: 10,
+            padding: 5,
+            pointRadius: 0,
          },
       },
       scales: {
          y: {
             display: false,
             beginAtZero: true,
-            min:0,
-            max:100,
+            min: 0,
+            max: 110,
          },
          x: {
             ticks: {
@@ -63,10 +64,8 @@ export const RainProbGraph = ({ probData }) => {
    };
 
    return (
-      <Stack gap={0} >
-         <Text>
-            Probabilidad de Precipitación
-         </Text>
+      <Stack gap={0}>
+         <Text>Probabilidad de Precipitación</Text>
          <Line data={data} options={options} />
       </Stack>
    );
@@ -78,6 +77,12 @@ export const PrecipitationGraph = ({ todayTmrwData }) => {
       plugins: {
          legend: {
             display: false,
+         // datalabels: {
+         //       display: true,
+         //       color: "rgb(231, 0, 0)", // Set the color of the value labels to black
+         //       align: "top",
+         //       anchor: "end",
+         //    },
          },
       },
       scales: {
@@ -89,7 +94,7 @@ export const PrecipitationGraph = ({ todayTmrwData }) => {
          },
          y: {
             ticks: {
-              //  color: theme.colors.textPrimary[0],
+               color: theme.colors.textPrimary[0],
             },
             beginAtZero: true,
             title: {
@@ -106,19 +111,18 @@ export const PrecipitationGraph = ({ todayTmrwData }) => {
       datasets: [
          {
             data: todayTmrwData.map((data) => data.rain),
-            borderColor: "rgb(6, 146, 240)",
-            backgroundColor: "rgba(6, 131, 214, 0.87)",
+            // borderColor: "rgb(6, 146, 240)",
+
+            backgroundColor: "rgba(47, 109, 151, 0.92)",
          },
       ],
    };
 
    return (
-    <Stack gap={0}>
-         <Text>
-            Cantidad de Lluvia
-         </Text>
+      <Stack gap={0}>
+         <Text>Cantidad de Lluvia</Text>
          <Bar data={data} options={precipitationOptions} />
-         </Stack>
+      </Stack>
    );
 };
 
@@ -135,7 +139,7 @@ export const TemperatureGraph = ({ todayTmrwData, getTemperatureColor }) => {
          y: {
             beginAtZero: false,
             ticks: {
-              //  color: theme.colors.textPrimary[0],
+               color: theme.colors.textPrimary[0],
                stepSize: 1,
             },
             title: {
@@ -182,45 +186,39 @@ export const TemperatureGraph = ({ todayTmrwData, getTemperatureColor }) => {
    };
 
    return (
-    <Stack gap={0}>
-      
-      <Text>
-    Temperatura y <span className="dotted-underline">Sensación Térmica</span>
-</Text>
+      <Stack gap={0}>
+         <Text>
+            Temperatura y <span className="dotted-underline">Sensación Térmica</span>
+         </Text>
          <Line data={data} options={temperatureGraphOptions} />
-          </Stack>
+      </Stack>
    );
 };
-
 export const CurrentDayInfo = ({ current, weatherData }) => {
-  return (
-    <Container>
-      <Group position="center" spacing="xl">
-        <Paper shadow="lg" padding="md">
-          <Center>
-            <IconTemperature size={40} stroke={1} />
-            <Text ta="center">
-              {current.temperature}°C
-            </Text>
-          </Center>
-          <Center>
-            <IconThermometer size={40} stroke={1} />
-            <Text ta="center">
-              {current.feelsLike}°C
-            </Text>
-          </Center>
-        </Paper>
-        <Paper shadow="lg" padding="md">
-          <Center>
-            <IconSunrise size={40} stroke={1} />
-            <Text ta="center">{weatherData[0].sunrise}</Text>
-          </Center>
-          <Center>
-            <IconSunset size={40} stroke={1} />
-            <Text ta="center">{weatherData[0].sunset}</Text>
-          </Center>
-        </Paper>
-      </Group>
-    </Container>
-  );
+   return (
+      <Container>
+         <Group position="center" spacing="xl">
+            <Paper shadow="lg" padding="md">
+               <Center>
+                  <IconTemperature size={40} stroke={1} />
+                  <Text ta="center">{current.temp}°C</Text>
+               </Center>
+               <Center>
+                  <IconThermometer size={40} stroke={1} />
+                  <Text ta="center">{current.feels_like}°C</Text>
+               </Center>
+            </Paper>
+            <Paper shadow="lg" padding="md">
+               <Center>
+                  <IconSunrise size={40} stroke={1} />
+                  <Text ta="center">{weatherData[0].sunrise}</Text>
+               </Center>
+               <Center>
+                  <IconSunset size={40} stroke={1} />
+                  <Text ta="center">{weatherData[0].sunset}</Text>
+               </Center>
+            </Paper>
+         </Group>
+      </Container>
+   );
 };

@@ -42,11 +42,15 @@ const WeatherDashboard = () => {
    useEffect(() => {
       const fetchWeatherData = async () => {
          try {
+            // const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/weather`);
             const response = await fetch("api/weather");
+
             if (!response.ok) {
                throw new Error(`HTTP error! status: ${response.status}`);
             }
-            const data = await response.json();
+            const responseText = await response.text();
+            // console.log("Raw response text:", responseText);
+            const data = JSON.parse(responseText);
             setWeatherData(data);
             console.log("Fetched data:", data);
          } catch (e) {
@@ -81,9 +85,9 @@ const WeatherDashboard = () => {
    console.log("rainProb", rainProb);
 
    const transformHourlyData = (hourData) => ({
-      hour: parseInt(hourData.hour, 10),
-      temperature: parseInt(hourData.temp, 10),
-      feelsLike: parseInt(hourData.feels_like, 10),
+      hour: parseInt(hourData.hour),
+      temperature: parseInt(hourData.temp),
+      feelsLike: parseInt(hourData.feels_like),
       rain: parseFloat(hourData.rain).toFixed(1),
    });
 
@@ -133,20 +137,17 @@ const WeatherDashboard = () => {
       const normalizedTemp = Math.max(0, Math.min(1, (temp - minTemp) / (maxTemp - minTemp)));
       const hue = 240 - normalizedTemp * 240;
       return `hsla(${hue}, 80%, 60%, 0.9)`;
-   };
-   
+   };   
+
    const getCurrentTemperature = () => {
-      const currentHour = new Date().getHours();
-      console.log("currentHour", currentHour);
-      const currentData = todayTmrwData.find((data) => parseInt(data.hour) === currentHour);
+      const currentData = todayTmrwData[0];
       return currentData
          ? {
-              temperature: currentData.temperature,
-              feelsLike: currentData.feelsLike,
+              temp: currentData.temp,
+              feels_like: currentData.feels_like,
             }
          : null;
    };
-
    const current = getCurrentTemperature();
    console.log("current", current);
    return (

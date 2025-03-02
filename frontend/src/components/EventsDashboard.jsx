@@ -14,7 +14,8 @@ const EventsDashboard = () => {
    useEffect(() => {
       const fetchMovieData = async () => {
          try {
-            const response = await fetch("api/movies");
+            // const response = await fetch("api/movies");
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/movies`);
             if (!response.ok) {
                throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -29,7 +30,8 @@ const EventsDashboard = () => {
 
       const fetchConcertData = async () => {
          try {
-            const response = await fetch("api/events");
+            // const response = await fetch("api/events");
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/events`);
             if (!response.ok) {
                throw new Error(`HTTP error! status: ${response.status}`);
             }

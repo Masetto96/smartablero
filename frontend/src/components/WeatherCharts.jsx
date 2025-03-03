@@ -233,18 +233,19 @@ export const HumidityChart = ({ todayTmrwData }) => {
       },
    };
 
+   const filteredData = todayTmrwData.filter((_, index) => index % 2 === 0);
+
    const data = {
-      labels: todayTmrwData.map((data) => `${data.hour}h`),
+      labels: filteredData.map((data) => `${data.hour}h`),
       datasets: [
          {
-            data: todayTmrwData.map((data) => data.humidity),
+            data: filteredData.map((data) => data.humidity),
             borderColor: "rgb(25, 32, 88)",
             backgroundColor: "rgba(38, 43, 112, 0.5)",
             fill: true,
          },
       ],
    };
-
    return (
       <Stack gap={0}>
          <Text>Humedad</Text>

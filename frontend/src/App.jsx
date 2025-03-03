@@ -91,7 +91,7 @@ const theme = createTheme({
 
 function App() {
    const displayComponents = [
-   // <WeatherDashboard key="weather" />,
+   <WeatherDashboard key="weather" />,
    <CustomCalendar key="calendar" />,
    <EventsDashboard key="events" />
    ];

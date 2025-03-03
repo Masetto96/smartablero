@@ -23,7 +23,7 @@ export const RainProbGraph = ({ probData }) => {
             label: "Probabilidad de precipitación",
             data: probData.map((prob) => prob.value),
             borderColor: "rgba(75, 192, 192, 0.53)",
-            backgroundColor: "rgba(92, 173, 173, 0.26)", // Add this line to set the fill color
+            backgroundColor: "rgba(92, 173, 173, 0.26)",
             fill: true,
             pointRadius: 1,
          },
@@ -40,7 +40,7 @@ export const RainProbGraph = ({ probData }) => {
             color: theme.colors.textPrimary[0],
             //   align: "bottom",
             formatter: (value) => `${value}%`,
-            backgroundColor: "rgba(34, 65, 65, 0.95)", // Add this line to set the fill color
+            backgroundColor: "rgba(34, 65, 65, 0.95)",
             // backgroundColor: theme.colors.backgroundLight[0],
             borderRadius: 10,
             padding: 5,
@@ -194,6 +194,64 @@ export const TemperatureGraph = ({ todayTmrwData, getTemperatureColor }) => {
       </Stack>
    );
 };
+
+export const HumidityChart = ({ todayTmrwData }) => {
+   const theme = useMantineTheme();
+   const humidityOptions = {
+      scales: {
+         x: {
+            ticks: {
+               autoSkip: true,
+               color: theme.colors.textPrimary[0],
+            },
+         },
+         y: {
+            beginAtZero: true,
+            min: 0,
+            max: 100,
+            display: false,
+            ticks: {
+               color: theme.colors.textPrimary[0],
+            },
+         },
+      },
+      plugins: {
+         legend: {
+            display: false,
+         },
+         datalabels: {
+            display: true,
+            color: theme.colors.textPrimary[0],
+            align: "top",
+            anchor: "end",
+            formatter: (value) => `${value}%`,
+            backgroundColor: "rgba(25, 32, 88, 0.65)", 
+            borderRadius: 10,
+            padding: 6,
+            pointRadius: 5,
+         },
+      },
+   };
+
+   const data = {
+      labels: todayTmrwData.map((data) => `${data.hour}h`),
+      datasets: [
+         {
+            data: todayTmrwData.map((data) => data.humidity),
+            borderColor: "rgb(25, 32, 88)",
+            backgroundColor: "rgba(38, 43, 112, 0.5)",
+            fill: true,
+         },
+      ],
+   };
+
+   return (
+      <Stack gap={0}>
+         <Text>Humedad</Text>
+         <Line data={data} options={humidityOptions} />
+      </Stack>
+   );
+}
 export const CurrentDayInfo = ({ current, weatherData }) => {
    return (
       <Container>

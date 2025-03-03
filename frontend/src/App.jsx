@@ -4,6 +4,7 @@ import "@mantine/dates/styles.css";
 import React, { useState, useEffect } from "react";
 import WeatherDashboard from "./components/WeatherDashboard";
 import EventsDashboard from "./components/EventsDashboard";
+import CustomCalendar from "./components/Calendar";
 import { Container, MantineProvider, Paper, Button, Group } from "@mantine/core";
 import { createTheme } from "@mantine/core";
 
@@ -54,8 +55,8 @@ const colorPalette = {
    backgroundLight: ["rgba(73, 73, 73, 0.62)"], // Slightly Lighter Grayish Blue
    textPrimary: ["rgba(234, 234, 234, 1)"], // Off-White
    textSecondary: ["rgba(166, 172, 200, 1)"], // Muted Blue Gray
-   accentPrimary: ["rgba(247, 118, 142, 1)"], // Soft Red
-   accentSuccess: ["rgba(158, 206, 106, 1)"], // Green
+   accentPrimary: ["rgb(184, 89, 89)"], // Soft orange
+   accentSuccess: ["rgb(69, 100, 36)"], // Green
    accentInfo: ["rgba(122, 162, 247, 1)"], // Blue
    accentWarning: ["rgba(224, 175, 104, 1)"], // Warm Yellow
 };
@@ -90,8 +91,9 @@ const theme = createTheme({
 
 function App() {
    const displayComponents = [
-   <WeatherDashboard key="weather" />
-   // ,<EventsDashboard key="events" />
+   // <WeatherDashboard key="weather" />,
+   <CustomCalendar key="calendar" />,
+   <EventsDashboard key="events" />
    ];
 
    return (

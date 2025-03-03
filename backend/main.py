@@ -31,7 +31,6 @@ class ForecastResponse(BaseModel):
     temp: int
     feels_like: int
     rain: str
-    sky: str
     humidity: int
 
 class DailyForecastResponse(BaseModel):

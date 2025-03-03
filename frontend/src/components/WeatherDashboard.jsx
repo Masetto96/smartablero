@@ -4,7 +4,8 @@ import {
    TemperatureGraph,
    CurrentDayInfo,
    RainProbGraph,
-   PrecipitationGraph
+   PrecipitationGraph,
+   HumidityChart,
 } from "./WeatherCharts";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import {
@@ -157,6 +158,7 @@ const WeatherDashboard = () => {
             <Stack gap="xl">
             <TemperatureGraph todayTmrwData={todayTmrwData} getTemperatureColor={getTemperatureColor} />
             <PrecipitationGraph todayTmrwData={todayTmrwData}/>
+            <HumidityChart todayTmrwData={todayTmrwData} />
             </Stack>
          </Grid.Col>
          <Grid.Col span={6}>

@@ -6,7 +6,6 @@ WORKDIR /app
 COPY package.json ./
 RUN npm install
 COPY . .
-COPY .env .env
 
 ARG VITE_BACKEND_URL=api
 ENV VITE_BACKEND_URL=$VITE_BACKEND_URL

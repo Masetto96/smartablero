@@ -17,7 +17,8 @@ jobs:
       # This ensures your working directory is up to date
       - name: Update local repository
         run: |
-          cd smartablero
+          pwd
+          cd ~/smartablero
           git pull origin pi
       
       # Deploy with Docker Compose

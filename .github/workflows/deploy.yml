@@ -14,13 +14,17 @@ jobs:
         with:
           fetch-depth: 0
       
-      
       - name: git pull origin pi
         run: |
           pwd
           cd ~/smartablero
           git fetch origin pi
           git reset --hard origin/pi
+
+      - name: Create .env file
+        run: |
+          echo "KEY=${{ secrets.WEATHER_API_KEY }}" > .env
+          chmod 644 .env
       
       # Deploy with Docker Compose
       - name: docker-compose 

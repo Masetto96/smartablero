@@ -11,6 +11,7 @@ services:
           - VITE_BACKEND_URL=api
 
   backend:
+    env_file: .env
     environment:
       - DEBUG=False
       - RELOAD=False

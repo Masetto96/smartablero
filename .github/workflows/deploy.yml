@@ -2,7 +2,7 @@ name: Deploy to Raspberry Pi
 
 on:
   push:
-    branches: [ pi ]  # or whatever branch you want to deploy from
+    branches: [ pi ]
 
 jobs:
   deploy:
@@ -14,16 +14,15 @@ jobs:
         with:
           fetch-depth: 0
       
-      # This ensures your working directory is up to date
-      - name: Update local repository
+      
+      - name: git pull origin pi
         run: |
           pwd
           cd ~/smartablero
           git pull origin pi
       
       # Deploy with Docker Compose
-      - name: Deploy with Docker Compose
+      - name: docker-compose 
         run: |
           docker-compose down
-          docker-compose build
-          docker-compose up -d
+          docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build

@@ -19,7 +19,8 @@ jobs:
         run: |
           pwd
           cd ~/smartablero
-          git pull origin pi
+          git fetch origin pi
+          git reset --hard origin/pi
       
       # Deploy with Docker Compose
       - name: docker-compose 

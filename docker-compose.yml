@@ -7,8 +7,6 @@ services:
 
   backend:
     build: ./backend
-    env_file:
-      - .env  # Load environment variables from .env file
     ports:
       - "8000:8000"
     restart: unless-stopped

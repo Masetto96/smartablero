@@ -1,0 +1,28 @@
+name: Deploy to Raspberry Pi
+
+on:
+  push:
+    branches: [ pi ]  # or whatever branch you want to deploy from
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      # This checks out the code that triggered the workflow
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      # This ensures your working directory is up to date
+      - name: Update local repository
+        run: |
+          cd smartablero
+          git pull origin pi
+      
+      # Deploy with Docker Compose
+      - name: Deploy with Docker Compose
+        run: |
+          docker-compose down
+          docker-compose build
+          docker-compose up -d

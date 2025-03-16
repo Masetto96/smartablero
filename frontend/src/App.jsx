@@ -8,16 +8,8 @@ import CustomCalendar from "./components/Calendar";
 import { Container, MantineProvider, Paper, Button, Group } from "@mantine/core";
 import { createTheme } from "@mantine/core";
 
-const RotatingDisplay = ({ components, intervalMs = 90000 }) => {
+const RotatingDisplay = ({ components }) => {
    const [currentIndex, setCurrentIndex] = useState(0);
-
-   useEffect(() => {
-      const interval = setInterval(() => {
-         setCurrentIndex((prevIndex) => (prevIndex + 1) % components.length);
-      }, intervalMs);
-
-      return () => clearInterval(interval);
-   }, [components.length, intervalMs]);
 
    useEffect(() => {
       const handleKeyDown = (event) => {
@@ -49,14 +41,14 @@ const RotatingDisplay = ({ components, intervalMs = 90000 }) => {
       </>
    );
 };
-
+// (43, 43, 43)
 const colorPalette = {
-   backgroundDark: ["rgba(43, 43, 43, 1)"], // Charcoal
+   backgroundDark: ["rgb(32, 31, 26)"], // Charcoal
    backgroundLight: ["rgba(73, 73, 73, 0.62)"], // Slightly Lighter Grayish Blue
    textPrimary: ["rgba(234, 234, 234, 1)"], // Off-White
    textSecondary: ["rgba(166, 172, 200, 1)"], // Muted Blue Gray
-   accentPrimary: ["rgb(184, 89, 89)"], // Soft orange
-   accentSuccess: ["rgb(69, 100, 36)"], // Green
+   accentPrimary: ["rgb(207, 90, 90)"], // Soft orange
+   accentSuccess: ["rgb(32, 59, 31)"], // Green
    accentInfo: ["rgba(122, 162, 247, 1)"], // Blue
    accentWarning: ["rgba(224, 175, 104, 1)"], // Warm Yellow
 };

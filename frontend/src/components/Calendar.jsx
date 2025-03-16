@@ -5,23 +5,25 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
 import ICAL from "ical.js";
-import './../App.css'; // Import the CSS file
+import './../App.css';
 
 const CustomCalendar = () => {
    const [events, setEvents] = useState([]);
+   const [icsEventsLoaded, setIcsEventsLoaded] = useState(false);
    const theme = useMantineTheme();
 
    useEffect(() => {
-      fetch("/calendarifestius_es.ics")
-         .then((response) => response.text())
-         .then((data) => {
+      const loadEvents = async () => {
+         try {
+            const response = await fetch("/calendarifestius_es.ics");
+            const data = await response.text();
             const jcalData = ICAL.parse(data);
             const comp = new ICAL.Component(jcalData);
             const vevents = comp.getAllSubcomponents("vevent");
             const fcEvents = vevents.map((vevent) => {
                const event = new ICAL.Event(vevent);
                return {
-                  id: event.uid,
+                  id: `ics-${event.uid}`,
                   title: event.summary,
                   start: event.startDate.toJSDate(),
                   end: event.endDate ? event.endDate.toJSDate() : null,
@@ -29,22 +31,38 @@ const CustomCalendar = () => {
                   color: theme.colors.accentSuccess[0],
                };
             });
-            setEvents(fcEvents);
-         })
-         .catch((err) => console.error("Error fetching ICS file:", err));
-   }, []);
+
+            const savedEvents = JSON.parse(localStorage.getItem("userEvents")) || [];
+            setEvents([...fcEvents, ...savedEvents]);
+            setIcsEventsLoaded(true);
+         } catch (err) {
+            console.error("Error fetching ICS file:", err);
+         }
+      };
+
+      if (!icsEventsLoaded) {
+         loadEvents();
+      }
+   }, [theme.colors.accentSuccess, icsEventsLoaded]);
+
+   const saveUserEvents = (updatedEvents) => {
+      const icsEvents = events.filter(event => event.id.startsWith("ics-"));
+      const userEvents = updatedEvents.filter(event => !event.id.startsWith("ics-"));
+      setEvents([...icsEvents, ...userEvents]);
+      localStorage.setItem("userEvents", JSON.stringify(userEvents));
+   };
 
    const handleDateClick = (info) => {
       const title = prompt("Enter event title:");
       if (!title) return;
       const newEvent = {
-         id: Date.now().toString(),
+         id: `user-${Date.now().toString()}`,
          title,
          start: info.date,
          allDay: info.allDay,
          color: theme.colors.accentSuccess[0],
       };
-      setEvents([...events, newEvent]);
+      saveUserEvents([...events, newEvent]);
    };
 
    const handleEventChange = (changeInfo) => {
@@ -57,18 +75,18 @@ const CustomCalendar = () => {
               }
             : event
       );
-      setEvents(updatedEvents);
+      saveUserEvents(updatedEvents);
    };
 
    const handleEventClick = (clickInfo) => {
       if (window.confirm(`Delete event '${clickInfo.event.title}'?`)) {
-         setEvents(events.filter((event) => event.id !== clickInfo.event.id));
+         saveUserEvents(events.filter((event) => event.id !== clickInfo.event.id));
       }
    };
 
    return (
       <Container size={1300}>
-         <Space h="md" />
+         <Space h="xl" />
          <FullCalendar
             plugins={[dayGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"

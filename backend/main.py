@@ -1,4 +1,5 @@
 import os
+import json
 import re
 from typing import List, Dict, Any
 from functools import partial
@@ -26,20 +27,29 @@ app.add_middleware(
 
 cache_hour = TTLCache(maxsize=1024, ttl=timedelta(hours=1), timer=datetime.now)
 cache_day = TTLCache(maxsize=1024, ttl=timedelta(days=1), timer=datetime.now)
+
+class PrecipitationProbability(BaseModel):
+    value: int
+    periodo: str
+
 class ForecastResponse(BaseModel):
     hour: int
     temp: int
     feels_like: int
+    sky: str
     rain: str
     humidity: int
 
 class DailyForecastResponse(BaseModel):
     fecha: str
     forecast_hourly: List[ForecastResponse]
-    prob_precipitacion: Any
+    prob_precipitacion: List[PrecipitationProbability]
     sunrise: str
     sunset: str
     viento: Any
+
+with open('sky_icon_mapping.json', 'r', encoding='utf-8') as f:
+    SKY_ICON_MAPPING = json.load(f)
 
 @app.get("/weather", response_model=List[DailyForecastResponse])
 def get_weather():
@@ -62,7 +72,7 @@ def get_events():
 @cached(cache_day, key=partial(hashkey, 'marula'))
 def scrape_marula():
     """Scraping the website of Marula Café Barcelona to get the events"""
-    url = "https://marulacafe.com/bcn/" 
+    url = "https://marulacafe.com/bcn/"
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
@@ -107,13 +117,14 @@ def get_weather_aemet_horaria():
         response_datos = requests.get(datos_url, timeout=10)
         response_datos.raise_for_status()
         datos_json = response_datos.json()
+
         # this is where the actual prediction for each day is, the rest is metadata
         days = datos_json[0].get("prediccion").get("dia")
-
         forecast_by_date = {}
 
         for day in days:
             fecha = day.get("fecha")[:10] # Get only the date part
+            print(fecha)
             orto = day.get("orto")
             ocaso = day.get("ocaso")
             temperatura = day.get("temperatura")
@@ -122,37 +133,38 @@ def get_weather_aemet_horaria():
             prob_precipitacion = day.get("probPrecipitacion")
             humedad = day.get("humedadRelativa")
             viento = day.get("vientoAndRachaMax")
+            cielo = day.get("estadoCielo")
             forecast_by_date[fecha] = {"fecha": fecha, "forecast_hourly": [], "prob_precipitacion": prob_precipitacion, "sunrise": orto, "sunset": ocaso, "viento": viento}
-            for idx, temp in enumerate(temperatura):
-                # probably one of the ugliest code I've ever written
-                # it is handling the case in which the hour of temperature data does not match the precipitation data
-                if temp.get("periodo") != feels_like[idx].get("periodo") or temp.get("periodo") != humedad[idx].get("periodo"):
-                    raise HTTPException(status_code=500, detail="ServerError: periodo is not the same")
-                try:
-                    if temp.get("periodo") != precipitation[idx].get("periodo"):
-                        if temp.get("periodo") == precipitation[idx+1].get("periodo"):
-                            prec_val = precipitation[idx+1].get("value")
-                        else:
-                            prec_val = precipitation[idx].get("value")
-                    else:
-                        prec_val = precipitation[idx].get("value")
-                except IndexError:
-                    prec_val = None
-                
-                temp_val = temp.get("value")
-                sens_val = feels_like[idx].get("value")
-                hum = humedad[idx].get("value")
-                hour = temp.get("periodo")
-                forecast_data = {"hour": int(hour), "temp": temp_val, "feels_like": sens_val, "rain": prec_val, "humidity": hum} 
-                forecast_by_date[fecha]["forecast_hourly"].append(forecast_data)
+            temp_dict = {item['periodo']: item['value'] for item in temperatura}
+            feels_like_dict = {item['periodo']: item['value'] for item in feels_like}
+            precipitation_dict = {item['periodo']: item['value'] for item in precipitation}
+            humedad_dict = {item['periodo']: item['value'] for item in humedad}
+            cielo_dict = {item['periodo']: item['descripcion'] for item in cielo}
+            # Merge all data on periodo
+            merged_data = [
+                {
+                    'hour': int(periodo),
+                    'temp': temp_dict.get(periodo),
+                    'feels_like': feels_like_dict.get(periodo),
+                    'rain': precipitation_dict.get(periodo),
+                    'humidity': humedad_dict.get(periodo),
+                    'sky': SKY_ICON_MAPPING.get(cielo_dict.get(periodo))
+                }
+                for periodo in temp_dict.keys()
+            ]
+
+            forecast_by_date[fecha]["forecast_hourly"].extend(merged_data)
+
         return forecast_by_date.values()
     
     except requests.RequestException as e:
         raise HTTPException(status_code=503, detail=f"Failed to fetch weather data: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
-    
-@cached(cache_day, key=partial(hashkey, 'zumzeig'))
+
+
+
+# @cached(cache_day, key=partial(hashkey, 'zumzeig'))
 def scrape_zumzeig() -> List[Dict]:
     """Scraping the website of Zumzeig Cine Cooperativa to get the moviez schedule"""
     try:
@@ -163,29 +175,29 @@ def scrape_zumzeig() -> List[Dict]:
         
         soup = BeautifulSoup(response.content, 'html.parser')
         movie_titles = soup.find_all('h2', class_=re.compile(r'^filmtitle'))
+        movie_info = soup.find_all('div', class_='infofilm')
         directors = soup.find_all('div', class_='autor')
         sessions = soup.find_all('span', class_='sessions')
         
         movies = []
+        print(len(movie_titles), len(directors), len(sessions))
+        # print(movie_titles, directors, sessions)
         for idx, title in enumerate(movie_titles):
+            session_times = movie_info[idx].find_all('div', class_='session')
+            authors = movie_info[idx].find_all('div', class_='autor')
+
+            authors = [author.get_text(strip=True) for author in authors]
             movie = {
                 "title": title.get_text(strip=True),
-                "director": directors[idx].get_text(strip=True),
+                "director": ', '.join(authors),
                 "sessions": [] # movies can have multiple sessions, duh
             }
-            
-            session_times = sessions[idx].find_all('div', class_='session')
-            if not session_times: # this is the case when entrades properament a la venda
-                # directors.pop(idx+1)
-                # movies.append(movie)
-                continue
                 
             for session_time in session_times:
                 date_time_str = session_time.get_text(strip=True)
                 match = re.search(r'(\w{2}) (\d{1,2}\.\d{1,2}\.\d{1,2})\((\d{2}:\d{2})\)', date_time_str)
                 if match:
                     day_of_week, date_str, time_str = match.groups()
-                    # TODO filter movies after 19:00h on weekdays
                     movie["sessions"].append({
                         "day": f"{day_of_week} {date_str.rstrip('.25')}",
                         "time": time_str
@@ -198,4 +210,54 @@ def scrape_zumzeig() -> List[Dict]:
         raise HTTPException(status_code=503, detail=f"Failed to fetch movie data: {str(e)}") from e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}") from e
+
+
+
+# # @cached(cache_day, key=partial(hashkey, 'zumzeig'))
+# def scrape_zumzeig() -> List[Dict]:
+#     """Scraping the website of Zumzeig Cine Cooperativa to get the moviez schedule"""
+#     try:
+#         url = "https://zumzeigcine.coop/es/cine/sesiones/"
+#         response = requests.get(url, timeout=10)
+#         response.raise_for_status()
+#         response.encoding = 'utf-8'
+        
+#         soup = BeautifulSoup(response.content, 'html.parser')
+#         movie_titles = soup.find_all('h2', class_=re.compile(r'^filmtitle'))
+#         directors = soup.find_all('div', class_='autor')
+#         sessions = soup.find_all('span', class_='sessions')
+        
+#         movies = []
+#         print(len(movie_titles), len(directors), len(sessions))
+#         # print(movie_titles, directors, sessions)
+#         for idx, title in enumerate(movie_titles):
+#             movie = {
+#                 "title": title.get_text(strip=True),
+#                 "director": directors[idx].get_text(strip=True),
+#                 "sessions": [] # movies can have multiple sessions, duh
+#             }
+#             print(movie)
+#             session_times = sessions[idx].find_all('div', class_='session')
+#             # if not session_times: # this is the case when entrades properament a la venda
+#             #     # directors.pop(idx+1)
+#             #     # movies.append(movie)
+#             #     continue
+                
+#             for session_time in session_times:
+#                 date_time_str = session_time.get_text(strip=True)
+#                 match = re.search(r'(\w{2}) (\d{1,2}\.\d{1,2}\.\d{1,2})\((\d{2}:\d{2})\)', date_time_str)
+#                 if match:
+#                     day_of_week, date_str, time_str = match.groups()
+#                     movie["sessions"].append({
+#                         "day": f"{day_of_week} {date_str.rstrip('.25')}",
+#                         "time": time_str
+#                     })
+
+#             movies.append(movie)
+#         return movies
+        
+#     except requests.RequestException as e:
+#         raise HTTPException(status_code=503, detail=f"Failed to fetch movie data: {str(e)}") from e
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}") from e
 

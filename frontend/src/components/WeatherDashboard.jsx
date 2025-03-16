@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Text, Grid, Stack, Card, Group, Paper, Container, Center, Space, useMantineTheme } from "@mantine/core";
+import { Grid, Stack, Space, useMantineTheme } from "@mantine/core";
 import {
    TemperatureGraph,
-   CurrentDayInfo,
    RainProbGraph,
    PrecipitationGraph,
    HumidityChart,
+   WeatherCards,
+   SunSetandSunRise,
 } from "./WeatherCharts";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import {
@@ -138,7 +139,7 @@ const WeatherDashboard = () => {
       const normalizedTemp = Math.max(0, Math.min(1, (temp - minTemp) / (maxTemp - minTemp)));
       const hue = 240 - normalizedTemp * 240;
       return `hsla(${hue}, 80%, 60%, 0.9)`;
-   };   
+   };
 
    const getCurrentTemperature = () => {
       const currentData = todayTmrwData[0];
@@ -146,7 +147,8 @@ const WeatherDashboard = () => {
          ? {
               temp: currentData.temp,
               feels_like: currentData.feels_like,
-            }
+              sky: currentData.sky,
+           }
          : null;
    };
    const current = getCurrentTemperature();
@@ -155,18 +157,21 @@ const WeatherDashboard = () => {
       <Grid>
          <Grid.Col span={6}>
             <Space h="xl" />
-            <Stack gap="xl">
-            <TemperatureGraph todayTmrwData={todayTmrwData} getTemperatureColor={getTemperatureColor} />
-            <PrecipitationGraph todayTmrwData={todayTmrwData}/>
-            <HumidityChart todayTmrwData={todayTmrwData} />
+            <Stack gap={30}>
+               <TemperatureGraph todayTmrwData={todayTmrwData} getTemperatureColor={getTemperatureColor} />
+               <PrecipitationGraph todayTmrwData={todayTmrwData} />
+               <HumidityChart todayTmrwData={todayTmrwData} />
             </Stack>
          </Grid.Col>
          <Grid.Col span={6}>
             <Space h="xl" />
-            <Stack gap="xl">
+            <div className="sunset-sunrise-container">
+               <SunSetandSunRise sunSet={weatherData[0].sunset} sunRise={weatherData[0].sunrise} />
+            </div>
+            <Stack gap={30}>
                <RainProbGraph probData={rainProb} plugins={ChartDataLabels} />
                {/* <Text>CIAOO</Text> */}
-               {current && <CurrentDayInfo current={current} weatherData={weatherData} />}
+               <WeatherCards weatherData={todayTmrwData} />
             </Stack>
          </Grid.Col>
       </Grid>

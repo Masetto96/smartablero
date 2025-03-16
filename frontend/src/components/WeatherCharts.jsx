@@ -1,8 +1,44 @@
 import { Line, Bar } from "react-chartjs-2";
 import { Text, Stack, useMantineTheme, Container, Group, Paper, Center } from "@mantine/core";
-import { IconSunrise, IconSunset, IconTemperature, IconThermometer } from "@tabler/icons-react";
-
+import { IconSunrise, IconSunset } from "@tabler/icons-react";
 import "../App.css";
+import {
+   WiDaySunny,
+   WiNightClear,
+   WiDayCloudy,
+   WiNightAltCloudy,
+   WiCloud,
+   WiCloudy,
+   WiDayShowers,
+   WiNightAltShowers,
+   WiDayRain,
+   WiNightAltRain,
+   WiDaySnow,
+   WiNightAltSnow,
+   WiDayThunderstorm,
+   WiNightAltThunderstorm,
+   WiFog,
+   WiDust,
+} from "weather-icons-react";
+
+const WeatherIconsMapping = {
+   WiDaySunny: WiDaySunny,
+   WiNightClear: WiNightClear,
+   WiDayCloudy: WiDayCloudy,
+   WiNightAltCloudy: WiNightAltCloudy,
+   WiCloud: WiCloud,
+   WiCloudy: WiCloudy,
+   WiDayShowers: WiDayShowers,
+   WiNightAltShowers: WiNightAltShowers,
+   WiDayRain: WiDayRain,
+   WiNightAltRain: WiNightAltRain,
+   WiDaySnow: WiDaySnow,
+   WiNightAltSnow: WiNightAltSnow,
+   WiDayThunderstorm: WiDayThunderstorm,
+   WiNightAltThunderstorm: WiNightAltThunderstorm,
+   WiFog: WiFog,
+   WiDust: WiDust,
+};
 
 const formatPeriod = (periodo, fecha) => {
    const date = new Date(fecha);
@@ -22,10 +58,10 @@ export const RainProbGraph = ({ probData }) => {
          {
             label: "Probabilidad de precipitación",
             data: probData.map((prob) => prob.value),
-            borderColor: "rgba(75, 192, 192, 0.53)",
-            backgroundColor: "rgba(92, 173, 173, 0.26)",
+            borderColor: "rgba(75, 192, 192, 0.26)",
+            backgroundColor: "rgba(56, 138, 138, 0.16)",
             fill: true,
-            pointRadius: 1,
+            tension: 0.1,
          },
       ],
    };
@@ -38,20 +74,18 @@ export const RainProbGraph = ({ probData }) => {
          datalabels: {
             display: true,
             color: theme.colors.textPrimary[0],
-            //   align: "bottom",
+            align: "top",
             formatter: (value) => `${value}%`,
             backgroundColor: "rgba(34, 65, 65, 0.95)",
             // backgroundColor: theme.colors.backgroundLight[0],
             borderRadius: 10,
             padding: 5,
-            pointRadius: 0,
          },
       },
       scales: {
          y: {
             display: false,
             beginAtZero: true,
-            min: 0,
             max: 110,
          },
          x: {
@@ -77,12 +111,12 @@ export const PrecipitationGraph = ({ todayTmrwData }) => {
       plugins: {
          legend: {
             display: false,
-         // datalabels: {
-         //       display: true,
-         //       color: "rgb(231, 0, 0)", // Set the color of the value labels to black
-         //       align: "top",
-         //       anchor: "end",
-         //    },
+            // datalabels: {
+            //       display: true,
+            //       color: "rgb(231, 0, 0)", // Set the color of the value labels to black
+            //       align: "top",
+            //       anchor: "end",
+            //    },
          },
       },
       scales: {
@@ -112,8 +146,7 @@ export const PrecipitationGraph = ({ todayTmrwData }) => {
          {
             data: todayTmrwData.map((data) => data.rain),
             // borderColor: "rgb(6, 146, 240)",
-
-            backgroundColor: "rgba(47, 109, 151, 0.92)",
+            backgroundColor: "rgba(11, 80, 126, 0.77)",
          },
       ],
    };
@@ -169,7 +202,7 @@ export const TemperatureGraph = ({ todayTmrwData, getTemperatureColor }) => {
                borderColor: (ctx) => getTemperatureColor(ctx.p1.parsed.y),
             },
             borderWidth: 4,
-            tension: 0.3,
+            tension: 0.1,
             pointRadius: 0,
          },
          {
@@ -179,7 +212,7 @@ export const TemperatureGraph = ({ todayTmrwData, getTemperatureColor }) => {
             },
             borderDash: [5, 5],
             borderWidth: 4,
-            tension: 0.3,
+            tension: 0.1,
             pointRadius: 0,
          },
       ],
@@ -206,9 +239,8 @@ export const HumidityChart = ({ todayTmrwData }) => {
             },
          },
          y: {
-            beginAtZero: true,
-            min: 0,
-            max: 100,
+            min: 20,
+            max: 110,
             display: false,
             ticks: {
                color: theme.colors.textPrimary[0],
@@ -223,12 +255,10 @@ export const HumidityChart = ({ todayTmrwData }) => {
             display: true,
             color: theme.colors.textPrimary[0],
             align: "top",
-            anchor: "end",
             formatter: (value) => `${value}%`,
-            backgroundColor: "rgba(25, 32, 88, 0.65)", 
+            backgroundColor: "rgba(25, 32, 88, 0.48)",
             borderRadius: 10,
             padding: 6,
-            pointRadius: 5,
          },
       },
    };
@@ -240,9 +270,10 @@ export const HumidityChart = ({ todayTmrwData }) => {
       datasets: [
          {
             data: filteredData.map((data) => data.humidity),
-            borderColor: "rgb(25, 32, 88)",
-            backgroundColor: "rgba(38, 43, 112, 0.5)",
+            borderColor: "rgba(55, 62, 114, 0.43)",
+            backgroundColor: "rgba(26, 31, 104, 0.27)",
             fill: true,
+            tension: 0.2,
          },
       ],
    };
@@ -252,32 +283,59 @@ export const HumidityChart = ({ todayTmrwData }) => {
          <Line data={data} options={humidityOptions} />
       </Stack>
    );
-}
-export const CurrentDayInfo = ({ current, weatherData }) => {
+};
+
+export const SunSetandSunRise = ({ sunSet, sunRise }) => {
+   const theme = useMantineTheme();
    return (
       <Container>
          <Group position="center" spacing="xl">
-            <Paper shadow="lg" padding="md">
-               <Center>
-                  <IconTemperature size={40} stroke={1} />
-                  <Text ta="center">{current.temp}°C</Text>
-               </Center>
-               <Center>
-                  <IconThermometer size={40} stroke={1} />
-                  <Text ta="center">{current.feels_like}°C</Text>
-               </Center>
-            </Paper>
-            <Paper shadow="lg" padding="md">
-               <Center>
-                  <IconSunrise size={40} stroke={1} />
-                  <Text ta="center">{weatherData[0].sunrise}</Text>
-               </Center>
-               <Center>
-                  <IconSunset size={40} stroke={1} />
-                  <Text ta="center">{weatherData[0].sunset}</Text>
-               </Center>
-            </Paper>
+            <Center>
+               <IconSunrise size={40} stroke={1} color={theme.colors.accentWarning[0]} />
+               <Text ta="center">{sunRise}</Text>
+            </Center>
+            <Center>
+               <IconSunset size={40} stroke={1} color={theme.colors.accentInfo[0]} />
+               <Text ta="center">{sunSet}</Text>
+            </Center>
          </Group>
       </Container>
+   );
+};
+
+export const WeatherCards = ({ weatherData }) => {
+   const theme = useMantineTheme();
+   const currentHour = new Date().getHours();
+
+   return (
+      <Group position="center" gap={0}>
+         {weatherData.map((data, index) => {
+            const IconComponent = WeatherIconsMapping[data.sky] || null;
+            const isCurrentHour = data.hour === currentHour;
+
+            return (
+               <Paper
+                  key={index}
+                  shadow="md"
+                  radius="md"
+                  style={{
+                     backgroundColor: isCurrentHour ? theme.colors.accentSuccess[0] : theme.colors.backgroundLight[0],
+                     padding: "0.5rem",
+                     margin: "0.5rem",
+                  }}
+               >
+                  <Stack gap={2} align="center">
+                     <Text>{`${data.hour}h`}</Text>
+                     {IconComponent ? (
+                        <IconComponent size={48} color={theme.colors.textSecondary[0]} />
+                     ) : (
+                        <Text>{data.sky}</Text>
+                     )}
+                     <Text>{data.feels_like}°</Text>
+                  </Stack>
+               </Paper>
+            );
+         })}
+      </Group>
    );
 };

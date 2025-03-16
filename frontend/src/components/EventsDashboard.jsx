@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Grid, Text, Stack, Box, Group, Center, Space } from "@mantine/core";
+import { Grid, Stack, Center, Space } from "@mantine/core";
 import ConcertsList from "./ConcertsList";
 import MoviesList from "./MoviesList";
 import marulaCafeLogo from "../assets/Logo-Marula-Cafe.png";

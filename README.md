@@ -20,7 +20,7 @@ It's deployed on a raspberry pi in my living room.
 
 ### Frontend (.env)
 
--  `VITE_BACKEND_URL`: The backend URL. Use `http://localhost:8000` during development and `api` in production.
+-  `VITE_BACKEND_URL`: The backend URL. Use `http://localhost:8000` during development
 
 ## Run docker
 

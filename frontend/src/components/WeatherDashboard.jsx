@@ -52,6 +52,8 @@ const WeatherDashboard = () => {
             }
             const responseText = await response.text();
             // console.log("Raw response text:", responseText);
+            // TODO: why is it parse as text ???
+            // maybe better const data = await response.json();
             const data = JSON.parse(responseText);
             setWeatherData(data);
             console.log("Fetched data:", data);

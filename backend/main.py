@@ -1,7 +1,7 @@
 import os
 import json
 import re
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from functools import partial
 from datetime import datetime, timedelta
 import requests
@@ -19,34 +19,34 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=["*"],  # TODO: Change this to the frontend URL
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"], 
+    allow_headers=["*"],
 )
 
 cache_hour = TTLCache(maxsize=1024, ttl=timedelta(hours=1), timer=datetime.now)
 cache_day = TTLCache(maxsize=1024, ttl=timedelta(days=1), timer=datetime.now)
 
 class PrecipitationProbability(BaseModel):
-    value: int
-    periodo: str
+    value: Optional[int]
+    periodo: Optional[str]
 
 class ForecastResponse(BaseModel):
-    hour: int
-    temp: int
-    feels_like: int
-    sky: str
-    rain: str
-    humidity: int
+    hour: Optional[int]
+    temp: Optional[int]
+    feels_like: Optional[int]
+    sky: Optional[str]
+    rain: Optional[str]
+    humidity: Optional[int]
 
 class DailyForecastResponse(BaseModel):
-    fecha: str
-    forecast_hourly: List[ForecastResponse]
-    prob_precipitacion: List[PrecipitationProbability]
-    sunrise: str
-    sunset: str
-    viento: Any
+    fecha: Optional[str]
+    forecast_hourly: List[ForecastResponse] = []  # Default empty list
+    prob_precipitacion: List[PrecipitationProbability] = []  # Default empty list
+    sunrise: Optional[str]
+    sunset: Optional[str]
+    viento: Optional[Any]
 
 with open('sky_icon_mapping.json', 'r', encoding='utf-8') as f:
     SKY_ICON_MAPPING = json.load(f)
@@ -124,7 +124,6 @@ def get_weather_aemet_horaria():
 
         for day in days:
             fecha = day.get("fecha")[:10] # Get only the date part
-            print(fecha)
             orto = day.get("orto")
             ocaso = day.get("ocaso")
             temperatura = day.get("temperatura")
@@ -164,7 +163,7 @@ def get_weather_aemet_horaria():
 
 
 
-# @cached(cache_day, key=partial(hashkey, 'zumzeig'))
+@cached(cache_day, key=partial(hashkey, 'zumzeig'))
 def scrape_zumzeig() -> List[Dict]:
     """Scraping the website of Zumzeig Cine Cooperativa to get the moviez schedule"""
     try:
@@ -176,11 +175,8 @@ def scrape_zumzeig() -> List[Dict]:
         soup = BeautifulSoup(response.content, 'html.parser')
         movie_titles = soup.find_all('h2', class_=re.compile(r'^filmtitle'))
         movie_info = soup.find_all('div', class_='infofilm')
-        directors = soup.find_all('div', class_='autor')
-        sessions = soup.find_all('span', class_='sessions')
-        
+
         movies = []
-        print(len(movie_titles), len(directors), len(sessions))
         # print(movie_titles, directors, sessions)
         for idx, title in enumerate(movie_titles):
             session_times = movie_info[idx].find_all('div', class_='session')
@@ -210,54 +206,3 @@ def scrape_zumzeig() -> List[Dict]:
         raise HTTPException(status_code=503, detail=f"Failed to fetch movie data: {str(e)}") from e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}") from e
-
-
-
-# # @cached(cache_day, key=partial(hashkey, 'zumzeig'))
-# def scrape_zumzeig() -> List[Dict]:
-#     """Scraping the website of Zumzeig Cine Cooperativa to get the moviez schedule"""
-#     try:
-#         url = "https://zumzeigcine.coop/es/cine/sesiones/"
-#         response = requests.get(url, timeout=10)
-#         response.raise_for_status()
-#         response.encoding = 'utf-8'
-        
-#         soup = BeautifulSoup(response.content, 'html.parser')
-#         movie_titles = soup.find_all('h2', class_=re.compile(r'^filmtitle'))
-#         directors = soup.find_all('div', class_='autor')
-#         sessions = soup.find_all('span', class_='sessions')
-        
-#         movies = []
-#         print(len(movie_titles), len(directors), len(sessions))
-#         # print(movie_titles, directors, sessions)
-#         for idx, title in enumerate(movie_titles):
-#             movie = {
-#                 "title": title.get_text(strip=True),
-#                 "director": directors[idx].get_text(strip=True),
-#                 "sessions": [] # movies can have multiple sessions, duh
-#             }
-#             print(movie)
-#             session_times = sessions[idx].find_all('div', class_='session')
-#             # if not session_times: # this is the case when entrades properament a la venda
-#             #     # directors.pop(idx+1)
-#             #     # movies.append(movie)
-#             #     continue
-                
-#             for session_time in session_times:
-#                 date_time_str = session_time.get_text(strip=True)
-#                 match = re.search(r'(\w{2}) (\d{1,2}\.\d{1,2}\.\d{1,2})\((\d{2}:\d{2})\)', date_time_str)
-#                 if match:
-#                     day_of_week, date_str, time_str = match.groups()
-#                     movie["sessions"].append({
-#                         "day": f"{day_of_week} {date_str.rstrip('.25')}",
-#                         "time": time_str
-#                     })
-
-#             movies.append(movie)
-#         return movies
-        
-#     except requests.RequestException as e:
-#         raise HTTPException(status_code=503, detail=f"Failed to fetch movie data: {str(e)}") from e
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}") from e
-

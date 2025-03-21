@@ -1,10 +1,10 @@
 import os
 import json
 import re
+import requests
 from typing import List, Dict, Any, Optional
 from functools import partial
 from datetime import datetime, timedelta
-import requests
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,6 +12,8 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from cachetools import TTLCache, cached
 from cachetools.keys import hashkey
+import feedparser
+from helpers import get_article_text
 
 load_dotenv()
 API_KEY = os.getenv("KEY")
@@ -68,6 +70,12 @@ def get_events():
     """Get the events happening in Barcelona"""
     events_marula = scrape_marula()
     return {"status": 200, "data": events_marula[:15]}
+
+@app.get("/news")
+def get_news():
+    """Get the news"""
+    el_pais = get_news_el_pais()
+    return {"news": {"elPais" : [el_pais[:15]]}}
 
 @cached(cache_day, key=partial(hashkey, 'marula'))
 def scrape_marula():
@@ -206,3 +214,20 @@ def scrape_zumzeig() -> List[Dict]:
         raise HTTPException(status_code=503, detail=f"Failed to fetch movie data: {str(e)}") from e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}") from e
+
+@cached(cache_day, key=partial(hashkey, 'elpais'))
+def get_news_el_pais():
+    """Get the news from El País"""
+    feed_url = "https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada"
+    feed = feedparser.parse(feed_url)
+    news = []
+
+    for entry in feed.entries:  # Display the top entries
+        text = get_article_text(entry)
+        news.append({
+            "title": entry.title,
+            "summary": entry.summary,
+            "link": entry.link,
+            "text": text
+        })
+    return news

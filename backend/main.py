@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import time
 import requests
 from typing import List, Dict, Any, Optional
 from functools import partial
@@ -11,12 +12,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from cachetools import TTLCache, cached
+from functools import partial
 from cachetools.keys import hashkey
-import feedparser
-from helpers import get_article_text
+from routers import news_router
+
 
 load_dotenv()
-API_KEY = os.getenv("KEY")
+WEATHER_API_KEY = os.getenv("WEATHER_KEY")
+NEWS_API_KEY = os.getenv("NEWS_KEY")
+
 app = FastAPI()
 
 app.add_middleware(
@@ -26,9 +30,12 @@ app.add_middleware(
     allow_methods=["*"], 
     allow_headers=["*"],
 )
-
+app.include_router(news_router.router)
 cache_hour = TTLCache(maxsize=1024, ttl=timedelta(hours=1), timer=datetime.now)
 cache_day = TTLCache(maxsize=1024, ttl=timedelta(days=1), timer=datetime.now)
+# TODO: review caching
+# cache_day = TTLCache(maxsize=1024, ttl=timedelta(days=1).total_seconds(), timer=time.time)
+
 
 class PrecipitationProbability(BaseModel):
     value: Optional[int]
@@ -71,12 +78,6 @@ def get_events():
     events_marula = scrape_marula()
     return {"status": 200, "data": events_marula[:15]}
 
-@app.get("/news")
-def get_news():
-    """Get the news"""
-    el_pais = get_news_el_pais()
-    return {"news": {"elPais" : [el_pais[:15]]}}
-
 @cached(cache_day, key=partial(hashkey, 'marula'))
 def scrape_marula():
     """Scraping the website of Marula Café Barcelona to get the events"""
@@ -114,7 +115,7 @@ def get_weather_aemet_horaria():
     CODIGO_MUNICIPIO = "08019" # 08019 is the code for Barcelona
     try:
         url_aemet = f"https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/horaria/{CODIGO_MUNICIPIO}" 
-        querystring = {"api_key": API_KEY}
+        querystring = {"api_key": WEATHER_API_KEY}
         headers = {'cache-control': "no-cache"}
         
         response_aemet = requests.get(url_aemet, headers=headers, params=querystring, timeout=10)
@@ -214,20 +215,3 @@ def scrape_zumzeig() -> List[Dict]:
         raise HTTPException(status_code=503, detail=f"Failed to fetch movie data: {str(e)}") from e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}") from e
-
-@cached(cache_day, key=partial(hashkey, 'elpais'))
-def get_news_el_pais():
-    """Get the news from El País"""
-    feed_url = "https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada"
-    feed = feedparser.parse(feed_url)
-    news = []
-
-    for entry in feed.entries:  # Display the top entries
-        text = get_article_text(entry)
-        news.append({
-            "title": entry.title,
-            "summary": entry.summary,
-            "link": entry.link,
-            "text": text
-        })
-    return news

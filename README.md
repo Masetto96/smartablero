@@ -16,7 +16,9 @@ It's deployed on a raspberry pi in my living room.
 
 ### Backend (.env)
 
--  `KEY`: The API key for the weather service.
+-  `WEATHER_KEY`: The API key for the [weather service](https://opendata.aemet.es/centrodedescargas/inicio).
+-  `NEWS_KEY`: The API key for the [news service](https://open-platform.theguardian.com/documentation/).
+
 
 ### Frontend (.env)
 
@@ -35,11 +37,3 @@ for production:
 ```bash
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build
 ```
-
-# Resources
-
--  Weather API [AEMET Open Data](https://opendata.aemet.es/centrodedescargas/inicio)
-
-<img src="frontend/src/assets/zumzeig.png" width="120" alt="zumzeig"/>
-
-<img src="frontend/src/assets/Logo-Marula-Cafe.png" width="120" alt="zumzeig"/>

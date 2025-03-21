@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Grid, Stack, Center, Space } from "@mantine/core";
+import { Grid, Stack, Center, Space, Loader } from "@mantine/core";
 import ConcertsList from "./ConcertsList";
 import MoviesList from "./MoviesList";
 import marulaCafeLogo from "../assets/Logo-Marula-Cafe.png";
@@ -49,7 +49,7 @@ const EventsDashboard = () => {
    }, []);
 
    if (isLoading) {
-      return <div className="text-lg text-gray-500">Loading data...</div>;
+      return <Loader size="xl"/>;
    }
 
    if (error) {

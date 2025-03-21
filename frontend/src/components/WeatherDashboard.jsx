@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Grid, Stack, Space, useMantineTheme } from "@mantine/core";
+import { Grid, Stack, Space, useMantineTheme, Loader } from "@mantine/core";
 import {
    TemperatureGraph,
    RainProbGraph,
@@ -67,7 +67,7 @@ const WeatherDashboard = () => {
    }, []);
 
    if (isLoading) {
-      return <div className="text-lg text-gray-500">Loading weather data...</div>;
+      return <Loader size="xl"/>;
    }
 
    if (error) {

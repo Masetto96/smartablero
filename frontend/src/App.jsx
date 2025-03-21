@@ -5,7 +5,8 @@ import React, { useState, useEffect } from "react";
 import WeatherDashboard from "./components/WeatherDashboard";
 import EventsDashboard from "./components/EventsDashboard";
 import CustomCalendar from "./components/Calendar";
-import { Container, MantineProvider, Paper, Button, Group } from "@mantine/core";
+import NewsFeed from "./components/NewsDashboard";
+import { Container, MantineProvider, Paper, Button, Group, Loader } from "@mantine/core";
 import { createTheme } from "@mantine/core";
 
 const RotatingDisplay = ({ components }) => {
@@ -41,16 +42,16 @@ const RotatingDisplay = ({ components }) => {
       </>
    );
 };
-// (43, 43, 43)
+
 const colorPalette = {
-   backgroundDark: ["rgb(32, 31, 26)"], // Charcoal
-   backgroundLight: ["rgba(73, 73, 73, 0.62)"], // Slightly Lighter Grayish Blue
-   textPrimary: ["rgba(234, 234, 234, 1)"], // Off-White
-   textSecondary: ["rgba(166, 172, 200, 1)"], // Muted Blue Gray
-   accentPrimary: ["rgb(207, 90, 90)"], // Soft orange
-   accentSuccess: ["rgb(32, 59, 31)"], // Green
-   accentInfo: ["rgba(122, 162, 247, 1)"], // Blue
-   accentWarning: ["rgba(224, 175, 104, 1)"], // Warm Yellow
+   backgroundDark: ["rgb(24, 26, 29)"], 
+   backgroundLight: ["rgba(73, 73, 73, 0.62)"],
+   textPrimary: ["rgb(232, 232, 232)"], 
+   textSecondary: ["rgb(225, 208, 196)"], 
+   accentPrimary: ["rgb(90, 191, 207)"],
+   accentSuccess: ["rgb(146, 68, 19)"], 
+   accentInfo: ["rgba(122, 162, 247, 1)"],
+   accentWarning: ["rgba(224, 175, 104, 1)"], 
 };
 
 const theme = createTheme({
@@ -77,6 +78,32 @@ const theme = createTheme({
             },
          },
       },
+      Card : {
+         defaultProps: {
+            shadow: "xs",
+            radius: "lg",
+            style: {
+               backgroundColor: colorPalette.backgroundLight[0],
+               margin: "0.5rem",
+               padding: "0.5rem",
+            },
+         },
+      },
+      Loader: {
+         defaultProps: {
+            color: colorPalette.accentWarning[0],
+            size: "xl",
+            // type: "dots",
+         },
+         styles: {
+            root: {
+               position: 'absolute',
+               top: '50%',
+               left: '50%',
+               transform: 'translate(-50%, -50%)',
+            }
+         }
+      },
    },
    colors: colorPalette,
 });
@@ -85,7 +112,8 @@ function App() {
    const displayComponents = [
    <WeatherDashboard key="weather" />,
    <CustomCalendar key="calendar" />,
-   <EventsDashboard key="events" />
+   <EventsDashboard key="events" />,
+   <NewsFeed key="news" />,
    ];
 
    return (

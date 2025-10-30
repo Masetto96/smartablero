@@ -9,6 +9,8 @@ services:
       - ./frontend:/app  # Live code reloading
     environment:
       - NODE_ENV=development
+    ports:
+      - "5173:5173"
 
   backend:
     volumes:

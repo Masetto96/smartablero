@@ -20,6 +20,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  gap: 1.5rem;
 }
 
 /* Main Header */
@@ -59,6 +60,11 @@
   flex: 1;
   display: flex;
   align-items: center;
+  max-height: calc(50vh - 2.25rem);
+}
+
+.news-rolling-full {
+  max-height: calc(100vh - 10rem);
 }
 
 .news-rolling-track {
@@ -70,12 +76,17 @@
 .news-rolling-item {
   flex: 0 0 380px;
   min-width: 380px;
-  height: 600px;
+  height: 100%;
+  max-height: 450px;
+}
+
+.news-rolling-full .news-rolling-item {
+  max-height: 600px;
 }
 
 /* News Cards */
 .news-card {
-  padding: 1.5rem;
+  padding: 1.2rem;
   position: relative;
   transition: all 0.3s ease;
   box-shadow: 
@@ -95,10 +106,6 @@
 }
 
 .news-card:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 
-    7px 7px 0 0 rgba(40, 54, 24, 0.4),
-    inset 0 0 30px rgba(254, 250, 224, 0.1);
   cursor: pointer;
 }
 .news-card-content {
@@ -136,9 +143,9 @@
 }
 
 .news-title {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 800;
-  margin: 0.75rem 0;
+  margin: 0.6rem 0;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   line-height: 1.25;
@@ -148,9 +155,9 @@
 }
 
 .news-summary {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   line-height: 1.5;
-  margin: 0.75rem 0;
+  margin: 0.6rem 0;
   opacity: 0.9;
   font-family: 'Courier New', monospace;
   flex-grow: 1;
@@ -159,8 +166,8 @@
 .news-read-more {
   display: inline-block;
   margin-top: auto;
-  padding: 0.5rem 1rem;
-  font-size: 0.7rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.65rem;
   font-weight: 900;
   letter-spacing: 0.15em;
   text-decoration: none;
@@ -277,6 +284,151 @@
 .vintage-text {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Section Overview */
+.news-overview-header {
+  text-align: center;
+  padding: 1rem 0;
+  margin-bottom: 2rem;
+}
+
+.news-sections-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  padding: 0 1rem;
+  overflow-y: auto;
+  max-height: calc(100vh - 12rem);
+}
+
+.news-section-card {
+  padding: 2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 
+    5px 5px 0 0 rgba(40, 54, 24, 0.3),
+    inset 0 0 30px rgba(254, 250, 224, 0.05);
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      rgba(254, 250, 224, 0.03),
+      rgba(254, 250, 224, 0.03) 2px,
+      transparent 2px,
+      transparent 4px
+    );
+}
+
+.news-section-card:hover {
+  cursor: pointer;
+}
+
+.news-section-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.news-section-card-title {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  margin: 0;
+  font-family: 'Courier New', monospace;
+}
+
+.news-section-card-count {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  font-family: 'Courier New', monospace;
+}
+
+.news-section-card-preview {
+  flex-grow: 1;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  font-family: 'Courier New', monospace;
+  opacity: 0.85;
+  max-height: 150px;
+  overflow: hidden;
+}
+
+.news-section-preview-item {
+  margin-bottom: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.news-section-card-arrow {
+  font-size: 0.9rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  font-family: 'Courier New', monospace;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 2px solid currentColor;
+}
+
+/* Section Detail Grid */
+.news-section-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.2rem;
+  padding: 0 1rem;
+  overflow-y: auto;
+  max-height: calc(100vh - 10rem);
+}
+
+/* Section Detail Header */
+.news-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.news-back-button {
+  background: rgba(40, 54, 24, 0.2);
+  border: 2px solid;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  font-family: 'Courier New', monospace;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+}
+
+.news-back-button:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 2px 2px 0 0 currentColor;
+  background: rgba(40, 54, 24, 0.4);
+}
+
+.news-section-title {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  flex-grow: 1;
+  text-align: center;
+}
+
+.news-section-count {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  font-family: 'Courier New', monospace;
+  padding: 0.6rem 1.2rem;
+  border: 2px solid;
+  background: rgba(40, 54, 24, 0.2);
 }
 
 /* Responsive adjustments */

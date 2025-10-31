@@ -1,4 +1,5 @@
 import os
+import random
 from typing import List, Optional
 from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException, Query
@@ -118,6 +119,9 @@ def get_news(
             published_date=article_data.get("webPublicationDate"),
         )
         articles.append(article)
+
+    # Shuffle the articles
+    random.shuffle(articles)
 
     return NewsResponse(
         articles=articles,

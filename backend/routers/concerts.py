@@ -16,14 +16,11 @@ cache_hour = TTLCache(maxsize=1024, ttl=timedelta(hours=1), timer=datetime.now)
 class ConcertEvent(BaseModel):
     date: str
     description: str
-
-
-class VenueEvents(BaseModel):
-    events: List[ConcertEvent]
+    venue: str
 
 
 class ConcertsResponse(BaseModel):
-    venues: dict[str, VenueEvents]
+    concerts: List[ConcertEvent]
 
 
 def custom_hashkey(*args, **kwargs):
@@ -115,7 +112,7 @@ async def get_concerts():
     Get the list of upcoming concerts from multiple venues in Sevilla.
     
     Returns:
-        ConcertsResponse: Dictionary with venue names as keys and their events
+        ConcertsResponse: Flat list of all concerts with venue information
     """
     venues_config = [
         {
@@ -128,7 +125,7 @@ async def get_concerts():
         }
     ]
     
-    venues_dict = {}
+    all_concerts = []
     
     for venue_config in venues_config:
         venue_name = venue_config["name"]
@@ -136,14 +133,67 @@ async def get_concerts():
         
         try:
             events = scrape_concerts(url, venue_name)
-            venues_dict[venue_name] = VenueEvents(
-                events=[ConcertEvent(**event) for event in events]
-            )
+            # Add venue name to each event and append to the flat list
+            for event in events:
+                all_concerts.append(ConcertEvent(
+                    date=event["date"],
+                    description=event["description"],
+                    venue=venue_name
+                ))
         except HTTPException as e:
             # Log the error but continue with other venues
             print(f"Error scraping {venue_name}: {e.detail}")
-            # Add empty events list for this venue
-            venues_dict[venue_name] = VenueEvents(events=[])
             continue
     
-    return ConcertsResponse(venues=venues_dict)
+    # Parse and filter concerts by date
+    def parse_spanish_date(date_str: str) -> datetime:
+        """Parse Spanish date format like 'Viernes 1 noviembre 2024' or '1 noviembre 2024'"""
+        spanish_months = {
+            "enero": 1, "febrero": 2, "marzo": 3, "abril": 4,
+            "mayo": 5, "junio": 6, "julio": 7, "agosto": 8,
+            "septiembre": 9, "octubre": 10, "noviembre": 11, "diciembre": 12
+        }
+        
+        # Remove day of week if present (e.g., "Viernes ")
+        parts = date_str.lower().split()
+        
+        # Find day, month, and year
+        day = None
+        month = None
+        year = None
+        
+        for part in parts:
+            # Check if it's a number (day or year)
+            if part.isdigit():
+                num = int(part)
+                if num > 31:  # It's a year
+                    year = num
+                elif day is None:  # It's a day
+                    day = num
+            # Check if it's a month
+            elif part in spanish_months:
+                month = spanish_months[part]
+        
+        # Default to current year if not specified
+        if year is None:
+            year = datetime.now().year
+        
+        if day and month:
+            return datetime(year, month, day)
+        else:
+            # If parsing fails, return a far future date to put it at the end
+            return datetime(9999, 12, 31)
+    
+    # Get yesterday's date (start of yesterday)
+    yesterday = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=1)
+    
+    # Filter out concerts that have already passed (before yesterday)
+    upcoming_concerts = [
+        concert for concert in all_concerts
+        if parse_spanish_date(concert.date) >= yesterday
+    ]
+    
+    # Sort concerts by date
+    upcoming_concerts.sort(key=lambda concert: parse_spanish_date(concert.date))
+    
+    return ConcertsResponse(concerts=upcoming_concerts)

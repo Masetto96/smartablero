@@ -70,7 +70,7 @@ const ConcertCard = ({ date, description, venue, index }) => {
 };
 
 const ConcertsList = () => {
-  const [venuesData, setVenuesData] = useState({});
+  const [concerts, setConcerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -82,7 +82,7 @@ const ConcertsList = () => {
           throw new Error('Failed to fetch concerts');
         }
         const data = await response.json();
-        setVenuesData(data.venues);
+        setConcerts(data.concerts);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -134,10 +134,7 @@ const ConcertsList = () => {
     );
   }
 
-  // Check if there are any events across all venues
-  const hasEvents = Object.values(venuesData).some(venue => venue.events && venue.events.length > 0);
-
-  if (!hasEvents) {
+  if (concerts.length === 0) {
     return (
       <div style={{ 
         display: 'flex', 
@@ -158,7 +155,7 @@ const ConcertsList = () => {
 
   return (
     <div style={{ padding: '1.5rem' }}>
-      <h2 className="retro-glow" style={{
+      {/* <h2 className="retro-glow" style={{
         fontSize: '2.25rem',
         fontWeight: 'bold',
         marginBottom: '2rem',
@@ -168,35 +165,19 @@ const ConcertsList = () => {
         textAlign: 'center',
       }}>
         VAMOS A BAILAR
-      </h2>
+      </h2> */}
       
-      {Object.entries(venuesData).map(([venueName, venueData]) => (
-        venueData.events && venueData.events.length > 0 && (
-          <div key={venueName} style={{ marginBottom: '3rem' }}>
-            <h3 className="retro-glow" style={{
-              fontSize: '1.75rem',
-              fontWeight: 'bold',
-              marginBottom: '1.5rem',
-              color: 'hsl(var(--retro-magenta))',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-            }}>
-              {venueName}
-            </h3>
-            <div className="concerts-grid">
-              {venueData.events.map((concert, index) => (
-                <ConcertCard 
-                  key={`${venueName}-${index}`}
-                  date={concert.date}
-                  description={concert.description}
-                  venue={venueName}
-                  index={index}
-                />
-              ))}
-            </div>
-          </div>
-        )
-      ))}
+      <div className="concerts-grid">
+        {concerts.map((concert, index) => (
+          <ConcertCard 
+            key={`${concert.venue}-${index}`}
+            date={concert.date}
+            description={concert.description}
+            venue={concert.venue}
+            index={index}
+          />
+        ))}
+      </div>
     </div>
   );
 };

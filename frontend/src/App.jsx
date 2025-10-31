@@ -8,6 +8,7 @@ import CustomCalendar from "./components/Calendar";
 import ConcertsList from "./components/ConcertsList";
 import NewsList from "./components/NewsList";
 import SoyDeTemporada from "./components/SoyDeTemporada";
+import PostItWall from "./components/PostItWall";
 import { Container, MantineProvider, Paper, Button, Group } from "@mantine/core";
 import { createTheme } from "@mantine/core";
 
@@ -91,7 +92,8 @@ function App() {
    // <EventsDashboard key="events" />,
    <ConcertsList key="concerts" />,
    <NewsList key="news" />,
-   <SoyDeTemporada key="soy-de-temporada" />
+   <SoyDeTemporada key="soy-de-temporada" />,
+   <PostItWall key="postit-wall" />
    ];
 
    return (

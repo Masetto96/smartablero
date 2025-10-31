@@ -26,7 +26,6 @@ const SoyDeTemporada = () => {
       <iframe 
         src="https://soydetemporada.es/"
         width="100%"
-        scrolling="yes"
         style={{
           flex: 1,
           border: '3px solid #606c38',

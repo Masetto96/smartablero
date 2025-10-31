@@ -12,10 +12,10 @@ from cachetools.keys import hashkey
 
 load_dotenv()
 API_KEY = os.getenv("WEATHER_KEY")
+# Cache for 1 hour since concert schedules don't change frequently
+cache_hour = TTLCache(maxsize=1024, ttl=timedelta(hours=0.5), timer=datetime.now)
 
 router = APIRouter()
-
-cache_hour = TTLCache(maxsize=1024, ttl=timedelta(hours=1), timer=datetime.now)
 
 class PrecipitationProbability(BaseModel):
     value: Optional[int]
@@ -43,11 +43,62 @@ _sky_icon_path = os.path.join(os.path.dirname(_current_dir), 'sky_icon_mapping.j
 with open(_sky_icon_path, 'r', encoding='utf-8') as f:
     SKY_ICON_MAPPING = json.load(f)
 
+class CurrentWeatherResponse(BaseModel):
+    temp: Optional[int]
+    feels_like: Optional[int]
+    sky: Optional[str]
+    humidity: Optional[int]
+    sunrise: Optional[str]
+    sunset: Optional[str]
+    hour: Optional[int]
+
 @router.get("/weather", response_model=List[DailyForecastResponse])
 def get_weather():
     """Get the weather forecast for Barcelona"""
+    # get_weather_aemet_horaria now returns a list (serializable) for consistency
     weather = get_weather_aemet_horaria()
     return weather
+
+@router.get("/weather/current", response_model=CurrentWeatherResponse)
+def get_current_weather():
+    """Get the current weather conditions"""
+    # get a list from the shared data provider (already a list)
+    weather_list = get_weather_aemet_horaria()
+
+    if not weather_list:
+        raise HTTPException(status_code=404, detail="No weather data available")
+
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    current_hour = datetime.now().hour
+
+    # Find today's data
+    today_data = next((day for day in weather_list if day.get("fecha") == current_date), None)
+    
+    if not today_data or not today_data.get("forecast_hourly"):
+        raise HTTPException(status_code=404, detail="No current weather data available")
+    
+    # Find the current hour's forecast
+    current_forecast = next(
+        (forecast for forecast in today_data["forecast_hourly"] if forecast["hour"] == current_hour),
+        None
+    )
+    
+    # If current hour not found, use the closest available hour
+    if not current_forecast and today_data["forecast_hourly"]:
+        current_forecast = today_data["forecast_hourly"][0]
+    
+    if not current_forecast:
+        raise HTTPException(status_code=404, detail="No forecast data available")
+    
+    return CurrentWeatherResponse(
+        temp=current_forecast.get("temp"),
+        feels_like=current_forecast.get("feels_like"),
+        sky=current_forecast.get("sky"),
+        humidity=current_forecast.get("humidity"),
+        sunrise=today_data.get("sunrise"),
+        sunset=today_data.get("sunset"),
+        hour=current_forecast.get("hour")
+    )
 
 @cached(cache_hour, key=partial(hashkey, 'weather'))
 def get_weather_aemet_horaria():
@@ -111,8 +162,9 @@ def get_weather_aemet_horaria():
 
             forecast_by_date[fecha]["forecast_hourly"].extend(merged_data)
 
-        return forecast_by_date.values()
-    
+        # Return a list so callers (and cache) get a serializable structure
+        return list(forecast_by_date.values())
+
     except requests.RequestException as e:
         raise HTTPException(status_code=503, detail=f"Failed to fetch weather data: {str(e)}")
     except Exception as e:

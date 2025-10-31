@@ -3,8 +3,11 @@ import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
 import React, { useState, useEffect } from "react";
 import WeatherDashboard from "./components/WeatherDashboard";
-import EventsDashboard from "./components/EventsDashboard";
+// import EventsDashboard from "./components/EventsDashboard";
 import CustomCalendar from "./components/Calendar";
+import ConcertsList from "./components/ConcertsList";
+import NewsList from "./components/NewsList";
+import SoyDeTemporada from "./components/SoyDeTemporada";
 import { Container, MantineProvider, Paper, Button, Group } from "@mantine/core";
 import { createTheme } from "@mantine/core";
 
@@ -62,7 +65,7 @@ const theme = createTheme({
    components: {
       Text: {
          defaultProps: {
-            c: colorPalette.textSecondary[0],
+            // c: colorPalette.textSecondary[0],
             ta: "center",
          },
       },
@@ -71,7 +74,7 @@ const theme = createTheme({
             radius: "md",
             shadow: "xs",
             style: {
-               backgroundColor: colorPalette.backgroundLight[0],
+               // backgroundColor: colorPalette.backgroundLight[0],
                margin: "0.5rem",
                padding: "0.5rem",
             },
@@ -85,7 +88,10 @@ function App() {
    const displayComponents = [
    <WeatherDashboard key="weather" />,
    <CustomCalendar key="calendar" />,
-   <EventsDashboard key="events" />
+   // <EventsDashboard key="events" />,
+   <ConcertsList key="concerts" />,
+   <NewsList key="news" />,
+   <SoyDeTemporada key="soy-de-temporada" />
    ];
 
    return (

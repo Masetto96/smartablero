@@ -12,9 +12,108 @@
     border-bottom: 3px dotted;
 }
 
+/* Calendar Color Palette Variables */
+:root {
+  --seal-brown: #582f0e;
+  --russet: #7f4f24;
+  --raw-umber: #936639;
+  --lion: #a68a64;
+  --khaki: #b6ad90;
+  --sage: #c2c5aa;
+  --sage-2: #a4ac86;
+  --reseda-green: #656d4a;
+  --ebony: #414833;
+  --black-olive: #333d29;
+}
+
+/* Calendar Toolbar */
 .fc-toolbar-title {
-  color: rgba(166, 172, 200, 1);
-  font-weight: 500;
+  color: var(--khaki);
+  font-weight: 600;
+}
+
+.fc .fc-button-primary {
+  background-color: var(--reseda-green);
+  border-color: var(--ebony);
+  color: var(--sage);
+}
+
+.fc .fc-button-primary:hover {
+  background-color: var(--ebony);
+  border-color: var(--black-olive);
+}
+
+.fc .fc-button-primary:disabled {
+  background-color: var(--black-olive);
+  border-color: var(--black-olive);
+  opacity: 0.6;
+}
+
+.fc .fc-button-primary:not(:disabled):active,
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+  background-color: var(--seal-brown);
+  border-color: var(--russet);
+}
+
+/* Calendar Grid */
+.fc .fc-daygrid-day {
+  background-color: var(--black-olive);
+}
+
+.fc .fc-daygrid-day:hover {
+  background-color: var(--ebony);
+}
+
+.fc .fc-daygrid-day-frame {
+  background-color: transparent;
+}
+
+.fc .fc-col-header-cell {
+  background-color: var(--reseda-green);
+  border-color: var(--ebony);
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: var(--ebony);
+}
+
+/* Calendar Events */
+.fc-event {
+  border-radius: 4px;
+  padding: 2px 4px;
+  border: 1px solid var(--russet);
+}
+
+.fc-event-title {
+  color: var(--sage);
+}
+
+/* Today's Date */
+.fc .fc-daygrid-day.fc-day-today {
+  background-color: rgba(147, 102, 57, 0.2);
+}
+
+.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+  background-color: var(--raw-umber);
+  color: var(--sage);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* Other Month Days */
+.fc .fc-daygrid-day.fc-day-other {
+  background-color: rgba(51, 61, 41, 0.5);
+}
+
+.fc .fc-daygrid-day.fc-day-other .fc-daygrid-day-number {
+  color: var(--lion);
+  opacity: 0.5;
 }
 .sunset-sunrise-container {
   position: absolute;

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import weather
+from routers import weather, concerts, news
 
 app = FastAPI()
 
@@ -13,3 +13,5 @@ app.add_middleware(
 )
 
 app.include_router(weather.router)
+app.include_router(concerts.router)
+app.include_router(news.router)

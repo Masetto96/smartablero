@@ -3,10 +3,9 @@ import { Grid, Stack, Space, useMantineTheme } from "@mantine/core";
 import {
    TemperatureGraph,
    RainProbGraph,
-   PrecipitationGraph,
    HumidityChart,
    WeatherCards,
-   SunSetandSunRise,
+   CurrentWeatherCard,
 } from "./WeatherCharts";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import {
@@ -37,6 +36,7 @@ ChartJS.register(
 
 const WeatherDashboard = () => {
    const [weatherData, setWeatherData] = useState(null);
+   const [currentWeather, setCurrentWeather] = useState(null);
    const [isLoading, setIsLoading] = useState(true);
    const [error, setError] = useState(null);
    const theme = useMantineTheme();
@@ -44,20 +44,30 @@ const WeatherDashboard = () => {
    useEffect(() => {
       const fetchWeatherData = async () => {
          try {
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/weather`);
-            // const response = await fetch("api/weather");
+            // Fetch both endpoints in parallel for efficiency
+            const [weatherResponse, currentResponse] = await Promise.all([
+               fetch(`${import.meta.env.VITE_BACKEND_URL}/weather`),
+               fetch(`${import.meta.env.VITE_BACKEND_URL}/weather/current`)
+            ]);
 
-            if (!response.ok) {
-               throw new Error(`HTTP error! status: ${response.status}`);
+            if (!weatherResponse.ok) {
+               throw new Error(`Weather API error! status: ${weatherResponse.status}`);
             }
-            const responseText = await response.text();
-            // console.log("Raw response text:", responseText);
-            // TODO: why is it parse as text ???
-            // maybe better const data = await response.json();
-            const data = JSON.parse(responseText);
-            setWeatherData(data);
-            console.log("Fetched data:", data);
+            
+            if (!currentResponse.ok) {
+               throw new Error(`Current weather API error! status: ${currentResponse.status}`);
+            }
+            
+            const [weatherData, currentData] = await Promise.all([
+               weatherResponse.json(),
+               currentResponse.json()
+            ]);
+            
+            setWeatherData(weatherData);
+            setCurrentWeather(currentData);
+            console.log("Fetched data:", weatherData, currentData);
          } catch (e) {
+            console.error("Error fetching weather:", e);
             setError(e.message || "Failed to fetch weather data");
          } finally {
             setIsLoading(false);
@@ -143,40 +153,27 @@ const WeatherDashboard = () => {
       return `hsla(${hue}, 80%, 60%, 0.9)`;
    };
 
-   const getCurrentTemperature = () => {
-      const currentData = todayTmrwData[0];
-      return currentData
-         ? {
-              temp: currentData.temp,
-              feels_like: currentData.feels_like,
-              sky: currentData.sky,
-           }
-         : null;
-   };
-   const current = getCurrentTemperature();
-   console.log("current", current);
    return (
-      <Grid>
-         <Grid.Col span={6}>
-            <Space h="xl" />
-            <Stack gap={30}>
-               <TemperatureGraph todayTmrwData={todayTmrwData} getTemperatureColor={getTemperatureColor} />
-               <PrecipitationGraph todayTmrwData={todayTmrwData} />
-               <HumidityChart todayTmrwData={todayTmrwData} />
-            </Stack>
-         </Grid.Col>
-         <Grid.Col span={6}>
-            <Space h="xl" />
-            <div className="sunset-sunrise-container">
-               <SunSetandSunRise sunSet={weatherData[0].sunset} sunRise={weatherData[0].sunrise} />
-            </div>
-            <Stack gap={30}>
-               <RainProbGraph probData={rainProb} plugins={ChartDataLabels} />
-               {/* <Text>CIAOO</Text> */}
-               <WeatherCards weatherData={todayTmrwData} />
-            </Stack>
-         </Grid.Col>
-      </Grid>
+      <div>
+         <Space h="xl" />
+         <div style={{ display: "flex", gap: "2rem", alignItems: "flex-start", marginBottom: "2rem" }}>
+            <CurrentWeatherCard currentWeather={currentWeather} />
+            <WeatherCards weatherData={todayTmrwData} />
+         </div>
+         <Grid>
+            <Grid.Col span={6}>
+               <Stack gap={30}>
+                  <TemperatureGraph todayTmrwData={todayTmrwData} getTemperatureColor={getTemperatureColor} />
+               </Stack>
+            </Grid.Col>
+            <Grid.Col span={6}>
+               <Stack gap={30}>
+                  <RainProbGraph probData={rainProb} plugins={ChartDataLabels} />
+                  <HumidityChart todayTmrwData={todayTmrwData} />
+               </Stack>
+            </Grid.Col>
+         </Grid>
+      </div>
    );
 };
 export default WeatherDashboard;

@@ -1,0 +1,31 @@
+.concerts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .concerts-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .concerts-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* .concert-card:hover {
+  transform: scale(1.02);
+  cursor: pointer;
+} */
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

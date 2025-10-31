@@ -1,11 +1,104 @@
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+:root {
+  --background: 240 10% 8%;
+  --foreground: 180 100% 75%;
+
+  --card: 240 10% 12%;
+  --card-foreground: 180 100% 75%;
+
+  --popover: 240 10% 12%;
+  --popover-foreground: 180 100% 75%;
+
+  --primary: 180 100% 50%;
+  --primary-foreground: 240 10% 8%;
+
+  --secondary: 320 100% 50%;
+  --secondary-foreground: 240 10% 8%;
+
+  --muted: 240 10% 20%;
+  --muted-foreground: 180 50% 60%;
+
+  --accent: 85 100% 50%;
+  --accent-foreground: 240 10% 8%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 240 10% 8%;
+
+  --border: 180 100% 50%;
+  --input: 180 100% 50%;
+  --ring: 180 100% 50%;
+
+  --radius: 0rem;
+
+  --retro-cyan: 180 100% 50%;
+  --retro-magenta: 320 100% 50%;
+  --retro-lime: 85 100% 50%;
+  --retro-yellow: 60 100% 50%;
+  
+  --venue-1: 180 100% 50%;
+  --venue-2: 320 100% 50%;
+
+  --sidebar-background: 240 10% 12%;
+  --sidebar-foreground: 180 100% 75%;
+  --sidebar-primary: 180 100% 50%;
+  --sidebar-primary-foreground: 240 10% 8%;
+  --sidebar-accent: 240 10% 20%;
+  --sidebar-accent-foreground: 180 100% 75%;
+  --sidebar-border: 180 100% 50%;
+  --sidebar-ring: 180 100% 50%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  width: 1920px; /* Set your desired width */
-  height: 1080px; /* Set your desired height */
+  width: 1920px;
+  height: 1080px;
+  font-family: 'Courier New', 'Courier Prime', monospace;
+  image-rendering: pixelated;
 }
 
 #root {
-  width: 1920px; /* Set your desired width */
-  height: 1080px; /* Set your desired height */
+  width: 1920px;
+  height: 1080px;
   margin: 0;
   padding: 0;
+}
+
+/* Utility classes for retro design */
+.pixel-border {
+  box-shadow: 
+    0 0 0 2px currentColor,
+    0 0 20px currentColor;
+}
+
+.retro-glow {
+  text-shadow: 
+    0 0 10px currentColor,
+    0 0 20px currentColor,
+    0 0 30px currentColor;
+}
+
+.scanlines {
+  position: relative;
+  overflow: hidden;
+}
+
+.scanlines::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 10;
 }

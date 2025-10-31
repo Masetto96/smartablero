@@ -7,6 +7,9 @@ services:
       dockerfile: Dockerfile.dev  # Use dev Dockerfile
     volumes:
       - ./frontend:/app  # Live code reloading
+      - /app/node_modules  # Prevent overwriting node_modules
+    env_file:
+      - ./frontend/.env  # Frontend environment variables
     environment:
       - NODE_ENV=development
     ports:
@@ -15,6 +18,12 @@ services:
   backend:
     volumes:
       - ./backend:/app  # Live code reloading
+      - /app/__pycache__  # Prevent issues with Python cache
+    env_file:
+      - ./backend/.env  # Backend environment variables (API keys, etc.)
     environment:
       - DEBUG=True
       - RELOAD=True
+    # Uncomment for debugging
+    # stdin_open: true
+    # tty: true

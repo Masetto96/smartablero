@@ -105,62 +105,15 @@ export const RainProbGraph = ({ probData }) => {
    );
 };
 
-export const PrecipitationGraph = ({ todayTmrwData }) => {
-   const theme = useMantineTheme();
-   const precipitationOptions = {
-      plugins: {
-         legend: {
-            display: false,
-            // datalabels: {
-            //       display: true,
-            //       color: "rgb(231, 0, 0)", // Set the color of the value labels to black
-            //       align: "top",
-            //       anchor: "end",
-            //    },
-         },
-      },
-      scales: {
-         x: {
-            ticks: {
-               autoSkip: true,
-               color: theme.colors.textPrimary[0],
-            },
-         },
-         y: {
-            ticks: {
-               color: theme.colors.textPrimary[0],
-            },
-            beginAtZero: true,
-            title: {
-               display: true,
-               text: "milímetros (mm)",
-               color: theme.colors.textSecondary[0],
-            },
-         },
-      },
-   };
 
-   const data = {
-      labels: todayTmrwData.map((data) => `${data.hour}h`),
-      datasets: [
-         {
-            data: todayTmrwData.map((data) => data.rain),
-            // borderColor: "rgb(6, 146, 240)",
-            backgroundColor: "rgba(11, 80, 126, 0.77)",
-         },
-      ],
-   };
-
-   return (
-      <Stack gap={0}>
-         <Text>Cantidad de Lluvia</Text>
-         <Bar data={data} options={precipitationOptions} />
-      </Stack>
-   );
-};
 
 export const TemperatureGraph = ({ todayTmrwData, getTemperatureColor }) => {
    const theme = useMantineTheme();
+   
+   const allTemps = [...todayTmrwData.map(d => d.temp), ...todayTmrwData.map(d => d.feels_like)];
+   const maxTemp = Math.max(...allTemps);
+   const minTemp = Math.min(...allTemps);
+   
    const temperatureGraphOptions = {
       scales: {
          x: {
@@ -170,16 +123,10 @@ export const TemperatureGraph = ({ todayTmrwData, getTemperatureColor }) => {
             },
          },
          y: {
+            display: false,
             beginAtZero: false,
-            ticks: {
-               color: theme.colors.textPrimary[0],
-               stepSize: 1,
-            },
-            title: {
-               display: true,
-               text: "temperatura (°C)",
-               color: theme.colors.textSecondary[0],
-            },
+            min: minTemp,
+            max: maxTemp + 3,
          },
       },
 
@@ -188,8 +135,15 @@ export const TemperatureGraph = ({ todayTmrwData, getTemperatureColor }) => {
             display: false,
          },
          datalabels: {
-            display: false,
+            display: (context) => {
+               return context.datasetIndex === 0 && context.dataIndex % 2 === 0;
+            },
             align: "top",
+            color: theme.colors.textPrimary[0],
+            formatter: (value) => `${value}°`,
+            backgroundColor: "rgba(34, 65, 65, 0.38)",
+            borderRadius: 10,
+            padding: 5,
          },
       },
    };
@@ -303,39 +257,150 @@ export const SunSetandSunRise = ({ sunSet, sunRise }) => {
    );
 };
 
+export const CurrentWeatherCard = ({ currentWeather }) => {
+   // const theme = useMantineTheme();
+   
+   if (!currentWeather) return null;
+   
+   const IconComponent = WeatherIconsMapping[currentWeather.sky] || WiDaySunny;
+   
+   return (
+      <Paper
+         shadow="xl"
+         radius="xl"
+         p="xl"
+         style={{
+            background: "linear-gradient(135deg, #936639 0%, #a68a64 100%)",
+            border: `3px solid #7f4f24`,
+            minWidth: "300px",
+            maxWidth: "400px",
+         }}
+      >
+         <Stack gap="md">
+            <Group position="apart" align="flex-start">
+               <Stack gap={4}>
+                  <Text size="4rem" fw={700} lh={1} c="#333d29">
+                     {currentWeather.feels_like}°
+                  </Text>
+               </Stack>
+               <Stack gap={0} align="center">
+                  <IconComponent size={80} color="#582f0e" />
+                  <Text size="sm" c="#333d29" fw={500}>
+                     {currentWeather.hour}h
+                  </Text>
+               </Stack>
+            </Group>
+            
+            <Group position="apart" mt="md">
+               <Stack gap={4} align="center" style={{ flex: 1 }}>
+                  <IconSunrise size={32} stroke={1.5} color="#582f0e" />
+                  <Text size="sm" fw={600} c="#333d29">
+                     {currentWeather.sunrise}
+                  </Text>
+               </Stack>
+               
+               <Stack gap={4} align="center" style={{ flex: 1 }}>
+                  <Text size="2xl" fw={600}>
+                     💧
+                  </Text>
+                  <Text size="sm" fw={600} c="#333d29">
+                     {currentWeather.humidity}%
+                  </Text>
+               </Stack>
+               
+               <Stack gap={4} align="center" style={{ flex: 1 }}>
+                  <IconSunset size={32} stroke={1.5} color="#582f0e" />
+                  <Text size="sm" fw={600} c="#333d29">
+                     {currentWeather.sunset}
+                  </Text>
+               </Stack>
+            </Group>
+         </Stack>
+      </Paper>
+   );
+};
+
 export const WeatherCards = ({ weatherData }) => {
    const theme = useMantineTheme();
    const currentHour = new Date().getHours();
 
    return (
-      <Group position="center" gap={0}>
-         {weatherData.map((data, index) => {
-            const IconComponent = WeatherIconsMapping[data.sky] || null;
-            const isCurrentHour = data.hour === currentHour;
+      <Container fluid p={0} style={{ marginBottom: "2rem" }}>
+         <div
+            style={{
+               display: "flex",
+               flexWrap: "wrap",
+               gap: "1rem",
+               justifyContent: "flex-start",
+            }}
+         >
+            {weatherData.map((data, index) => {
+               const IconComponent = WeatherIconsMapping[data.sky] || null;
+               const isCurrentHour = data.hour === currentHour;
+               const hasRain = parseFloat(data.rain) > 0;
 
-            return (
-               <Paper
-                  key={index}
-                  shadow="md"
-                  radius="md"
-                  style={{
-                     backgroundColor: isCurrentHour ? theme.colors.accentSuccess[0] : theme.colors.backgroundLight[0],
-                     padding: "0.5rem",
-                     margin: "0.5rem",
-                  }}
-               >
-                  <Stack gap={2} align="center">
-                     <Text>{`${data.hour}h`}</Text>
-                     {IconComponent ? (
-                        <IconComponent size={48} color={theme.colors.textSecondary[0]} />
-                     ) : (
-                        <Text>{data.sky}</Text>
-                     )}
-                     <Text>{data.feels_like}°</Text>
-                  </Stack>
-               </Paper>
-            );
-         })}
-      </Group>
+               return (
+                  <Paper
+                     key={index}
+                     shadow={isCurrentHour ? "xl" : "md"}
+                     radius="lg"
+                     p="md"
+                     style={{
+                        background: isCurrentHour 
+                           ? "linear-gradient(135deg, #656d4a 0%, #a4ac86 100%)"
+                           : "linear-gradient(135deg, #b6ad90 0%, #c2c5aa 100%)",
+                        border: isCurrentHour ? `3px solid #414833` : `2px solid #a68a64`,
+                        transition: "all 0.3s ease",
+                        minHeight: "140px",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                     }}
+                  >
+                     <Stack gap={8} align="center">
+                        <Text
+                           fw={isCurrentHour ? 700 : 600}
+                           size="lg"
+                           c={isCurrentHour ? "#333d29" : "#582f0e"}
+                        >
+                           {`${data.hour}h`}
+                        </Text>
+                        {IconComponent ? (
+                           <IconComponent 
+                              size={56} 
+                              color={isCurrentHour ? "#333d29" : "#582f0e"} 
+                           />
+                        ) : (
+                           <Text size="sm" c={isCurrentHour ? "#333d29" : "#582f0e"}>
+                              {data.sky}
+                           </Text>
+                        )}
+                        <Text 
+                           fw={600} 
+                           size="xl" 
+                           c={isCurrentHour ? "#333d29" : "#582f0e"}
+                        >
+                           {data.feels_like}°
+                        </Text>
+                        {hasRain && (
+                           <Text
+                              size="sm"
+                              fw={500}
+                              c={isCurrentHour ? "#333d29" : "#582f0e"}
+                              style={{
+                                 backgroundColor: isCurrentHour ? "rgba(51, 61, 41, 0.4)" : "rgba(88, 47, 14, 0.3)",
+                                 padding: "2px 8px",
+                                 borderRadius: "8px",
+                              }}
+                           >
+                              💧 {data.rain} mm
+                           </Text>
+                        )}
+                     </Stack>
+                  </Paper>
+               );
+            })}
+         </div>
+      </Container>
    );
 };

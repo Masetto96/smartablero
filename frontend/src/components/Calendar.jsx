@@ -28,7 +28,7 @@ const CustomCalendar = () => {
                   start: event.startDate.toJSDate(),
                   end: event.endDate ? event.endDate.toJSDate() : null,
                   allDay: true,
-                  color: theme.colors.accentSuccess[0],
+                  color: "#414833",
                };
             });
 
@@ -60,7 +60,7 @@ const CustomCalendar = () => {
          title,
          start: info.date,
          allDay: info.allDay,
-         color: theme.colors.accentSuccess[0],
+         color: "#936639",
       };
       saveUserEvents([...events, newEvent]);
    };
@@ -98,7 +98,7 @@ const CustomCalendar = () => {
             editable={true}
             selectable={true}
             dayHeaderContent={(args) => (
-               <div style={{ color: theme.colors.accentWarning[0], fontWeight: "bold" }}>{args.text}</div>
+               <div style={{ color: "#b6ad90", fontWeight: "bold" }}>{args.text}</div>
             )}
             headerToolbar={{
                left: "prev,next today",
@@ -106,7 +106,7 @@ const CustomCalendar = () => {
                right: "dayGridMonth,dayGridWeek",
             }}
             titleFormat={{ year: "numeric", month: "long" }}
-            dayCellContent={(args) => <div style={{ color: theme.colors.accentPrimary[0] }}>{args.dayNumberText}</div>}
+            dayCellContent={(args) => <div style={{ color: "#c2c5aa" }}>{args.dayNumberText}</div>}
          />
       </Container>
    );

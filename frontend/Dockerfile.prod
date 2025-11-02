@@ -11,9 +11,10 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install dependencies
-# Use npm install instead of npm ci to properly handle optional dependencies on ARM64
-# This is a workaround for: https://github.com/npm/cli/issues/4828
-RUN npm install && \
+# Remove package-lock.json to work around npm bug with optional dependencies on ARM64
+# See: https://github.com/npm/cli/issues/4828
+RUN rm -f package-lock.json && \
+    npm install && \
     npm cache clean --force
 
 # Copy source code

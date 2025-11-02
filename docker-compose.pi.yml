@@ -1,0 +1,82 @@
+# Production Docker Compose for Raspberry Pi 4 (2GB RAM)
+# Optimized with memory limits and resource constraints
+# Uses pre-built ARM64 images from GitHub Container Registry
+
+version: '3.8'
+
+services:
+  frontend:
+    image: ghcr.io/masetto96/smartablero/frontend:ref-sevilla
+    container_name: smartablero-frontend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    networks:
+      - smartablero-network
+    # Memory limits optimized for 2GB RPi
+    # Nginx is very lightweight, 128MB is more than enough
+    mem_limit: 128m
+    mem_reservation: 64m
+    cpus: 0.75
+    # Reduced healthcheck frequency to save resources
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 60s
+      timeout: 5s
+      retries: 2
+      start_period: 30s
+    # Logging limits to prevent disk space issues
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    image: ghcr.io/masetto96/smartablero/backend:ref-sevilla
+    container_name: smartablero-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - DEBUG=False
+      - RELOAD=False
+      # Python memory optimizations
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    restart: unless-stopped
+    networks:
+      - smartablero-network
+    # Memory limits optimized for 2GB RPi
+    # Backend needs more memory for caching and API requests
+    mem_limit: 768m
+    mem_reservation: 384m
+    cpus: 1.5
+    # Reduced healthcheck frequency
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/docs')"]
+      interval: 60s
+      timeout: 10s
+      retries: 2
+      start_period: 30s
+    # Logging limits
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  smartablero-network:
+    driver: bridge
+
+# Resource allocation summary for 2GB RAM:
+# - Frontend: 128MB limit (nginx is very lightweight, typically uses ~30-50MB)
+# - Backend: 768MB limit (Python + FastAPI + caching + API requests)
+# - Total containers: 896MB (~0.9GB)
+# - System overhead: ~512MB (OS, Docker daemon, buffers)
+# - Available headroom: ~600MB (for spikes and other processes)
+# 
+# This configuration allows comfortable operation with room for memory spikes
+# while preventing OOM situations

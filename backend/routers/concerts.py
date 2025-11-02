@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from datetime import datetime, timedelta
@@ -6,6 +6,7 @@ from cachetools import TTLCache, cached
 from cachetools.keys import hashkey
 import requests
 from bs4 import BeautifulSoup
+import re
 
 router = APIRouter()
 
@@ -17,6 +18,8 @@ class ConcertEvent(BaseModel):
     date: str
     description: str
     venue: str
+    time: Optional[str] = None
+    cost: Optional[str] = None
 
 
 class ConcertsResponse(BaseModel):
@@ -26,6 +29,45 @@ class ConcertsResponse(BaseModel):
 def custom_hashkey(*args, **kwargs):
     """Custom hash key for caching that ignores self parameter"""
     return hashkey(*args, **kwargs)
+
+
+def extract_time_and_cost(description: str) -> tuple[Optional[str], Optional[str], str]:
+    """
+    Extract time and cost from concert description using regex.
+    
+    Args:
+        description: The concert description text
+        
+    Returns:
+        Tuple of (time, cost, cleaned_description)
+    """
+    time = None
+    cost = None
+    cleaned_description = description
+    
+    # Extract time: number followed by "horas"
+    # Pattern: matches things like "21 horas", "20:30 horas", etc.
+    time_pattern = r'(\d{1,2}(?::\d{2})?)\s*horas?'
+    time_match = re.search(time_pattern, description, re.IGNORECASE)
+    if time_match:
+        time = time_match.group(1)
+        # Remove the time part from description
+        cleaned_description = re.sub(time_pattern + r',?\s*', '', cleaned_description, flags=re.IGNORECASE)
+    
+    # Extract cost: number followed by "euros"
+    # Pattern: matches things like "15 euros", "15,50 euros", "15.50 euros"
+    cost_pattern = r'(\d+(?:[.,]\d{1,2})?)\s*euros?'
+    cost_match = re.search(cost_pattern, description, re.IGNORECASE)
+    if cost_match:
+        cost = cost_match.group(1)
+        # Remove the cost part from description (including "Entradas anticipadas" if present)
+        cleaned_description = re.sub(r'(?:Entradas?\s+)?(?:anticipadas?\s+)?(?:desde\s+)?' + cost_pattern + r'\.?', '', cleaned_description, flags=re.IGNORECASE)
+    
+    # Clean up extra whitespace and punctuation
+    cleaned_description = re.sub(r'\s+', ' ', cleaned_description).strip()
+    cleaned_description = re.sub(r'^[,.\s]+|[,.\s]+$', '', cleaned_description)
+    
+    return time, cost, cleaned_description
 
 
 @cached(cache_hour, key=custom_hashkey)
@@ -135,10 +177,15 @@ async def get_concerts():
             events = scrape_concerts(url, venue_name)
             # Add venue name to each event and append to the flat list
             for event in events:
+                # Extract time and cost from description
+                time, cost, cleaned_description = extract_time_and_cost(event["description"])
+                
                 all_concerts.append(ConcertEvent(
                     date=event["date"],
-                    description=event["description"],
-                    venue=venue_name
+                    description=cleaned_description,
+                    venue=venue_name,
+                    time=time,
+                    cost=cost
                 ))
         except HTTPException as e:
             # Log the error but continue with other venues

@@ -1,6 +1,6 @@
-import { Line, Bar } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
 import { Text, Stack, useMantineTheme, Container, Group, Paper, Center } from "@mantine/core";
-import { IconSunrise, IconSunset } from "@tabler/icons-react";
+import { IconSunrise, IconSunset, IconCloudRain } from "@tabler/icons-react";
 import "../App.css";
 import {
    WiDaySunny,
@@ -58,8 +58,8 @@ export const RainProbGraph = ({ probData }) => {
          {
             label: "Probabilidad de precipitación",
             data: probData.map((prob) => prob.value),
-            borderColor: "rgba(75, 192, 192, 0.26)",
-            backgroundColor: "rgba(56, 138, 138, 0.16)",
+            borderColor: "rgba(135, 187, 162, 0.9)",
+            backgroundColor: "rgba(201, 228, 202, 0.5)",
             fill: true,
             tension: 0.1,
          },
@@ -71,13 +71,24 @@ export const RainProbGraph = ({ probData }) => {
          legend: {
             display: false,
          },
+         title: {
+            display: true,
+            text: "Probabilidad de precipitación",
+            color: theme.colors.textPrimary[0],
+            font: {
+               size: 16,
+               weight: "600",
+            },
+            padding: {
+               bottom: 10,
+            },
+         },
          datalabels: {
             display: true,
-            color: theme.colors.textPrimary[0],
+            color: "rgba(54, 73, 88, 1)",
             align: "top",
             formatter: (value) => `${value}%`,
-            backgroundColor: "rgba(34, 65, 65, 0.95)",
-            // backgroundColor: theme.colors.backgroundLight[0],
+            backgroundColor: "rgba(201, 228, 202, 0.95)",
             borderRadius: 10,
             padding: 5,
          },
@@ -98,22 +109,17 @@ export const RainProbGraph = ({ probData }) => {
    };
 
    return (
-      <Stack gap={0}>
-         <Text>Probabilidad de Precipitación</Text>
          <Line data={data} options={options} />
-      </Stack>
    );
 };
 
-
-
 export const TemperatureGraph = ({ todayTmrwData, getTemperatureColor }) => {
    const theme = useMantineTheme();
-   
-   const allTemps = [...todayTmrwData.map(d => d.temp), ...todayTmrwData.map(d => d.feels_like)];
+
+   const allTemps = [...todayTmrwData.map((d) => d.temp), ...todayTmrwData.map((d) => d.feels_like)];
    const maxTemp = Math.max(...allTemps);
    const minTemp = Math.min(...allTemps);
-   
+
    const temperatureGraphOptions = {
       scales: {
          x: {
@@ -139,9 +145,9 @@ export const TemperatureGraph = ({ todayTmrwData, getTemperatureColor }) => {
                return context.datasetIndex === 0 && context.dataIndex % 2 === 0;
             },
             align: "top",
-            color: theme.colors.textPrimary[0],
+            color: "rgba(54, 73, 88, 1)",
             formatter: (value) => `${value}°`,
-            backgroundColor: "rgba(34, 65, 65, 0.38)",
+            backgroundColor: "rgba(201, 228, 202, 0.95)",
             borderRadius: 10,
             padding: 5,
          },
@@ -173,12 +179,7 @@ export const TemperatureGraph = ({ todayTmrwData, getTemperatureColor }) => {
    };
 
    return (
-      <Stack gap={0}>
-         <Text>
-            Temperatura y <span className="dotted-underline">Sensación Térmica</span>
-         </Text>
          <Line data={data} options={temperatureGraphOptions} />
-      </Stack>
    );
 };
 
@@ -205,12 +206,24 @@ export const HumidityChart = ({ todayTmrwData }) => {
          legend: {
             display: false,
          },
+         title: {
+            display: true,
+            text: "Humedad",
+            color: theme.colors.textPrimary[0],
+            font: {
+               size: 16,
+               weight: "600",
+            },
+            padding: {
+               bottom: 10,
+            },
+         },
          datalabels: {
             display: true,
-            color: theme.colors.textPrimary[0],
+            color: "rgba(54, 73, 88, 1)",
             align: "top",
             formatter: (value) => `${value}%`,
-            backgroundColor: "rgba(25, 32, 88, 0.48)",
+            backgroundColor: "rgba(201, 228, 202, 0.95)",
             borderRadius: 10,
             padding: 6,
          },
@@ -224,18 +237,15 @@ export const HumidityChart = ({ todayTmrwData }) => {
       datasets: [
          {
             data: filteredData.map((data) => data.humidity),
-            borderColor: "rgba(55, 62, 114, 0.43)",
-            backgroundColor: "rgba(26, 31, 104, 0.27)",
+            borderColor: "rgba(135, 187, 162, 0.9)",
+            backgroundColor: "rgba(201, 228, 202, 0.6)",
             fill: true,
             tension: 0.2,
          },
       ],
    };
    return (
-      <Stack gap={0}>
-         <Text>Humedad</Text>
          <Line data={data} options={humidityOptions} />
-      </Stack>
    );
 };
 
@@ -259,58 +269,58 @@ export const SunSetandSunRise = ({ sunSet, sunRise }) => {
 
 export const CurrentWeatherCard = ({ currentWeather }) => {
    // const theme = useMantineTheme();
-   
+
    if (!currentWeather) return null;
-   
+
    const IconComponent = WeatherIconsMapping[currentWeather.sky] || WiDaySunny;
-   
+
    return (
       <Paper
          shadow="xl"
          radius="xl"
          p="xl"
          style={{
-            background: "linear-gradient(135deg, #936639 0%, #a68a64 100%)",
-            border: `3px solid #7f4f24`,
-            minWidth: "300px",
-            maxWidth: "400px",
+            background: "linear-gradient(135deg, rgba(201, 228, 202, 1) 0%, rgba(135, 187, 162, 1) 100%)",
+            border: `3px solid rgba(85, 130, 139, 1)`,
+            minWidth: "280px",
+            maxWidth: "350px",
          }}
       >
          <Stack gap="md">
             <Group position="apart" align="flex-start">
                <Stack gap={4}>
-                  <Text size="4rem" fw={700} lh={1} c="#333d29">
+                  <Text size="4rem" fw={700} lh={1} c="rgba(54, 73, 88, 1)">
                      {currentWeather.feels_like}°
                   </Text>
                </Stack>
                <Stack gap={0} align="center">
-                  <IconComponent size={80} color="#582f0e" />
-                  <Text size="sm" c="#333d29" fw={500}>
+                  <IconComponent size={80} color="rgba(59, 96, 100, 1)" />
+                  <Text size="sm" c="rgba(54, 73, 88, 1)" fw={500}>
                      {currentWeather.hour}h
                   </Text>
                </Stack>
             </Group>
-            
+
             <Group position="apart" mt="md">
                <Stack gap={4} align="center" style={{ flex: 1 }}>
-                  <IconSunrise size={32} stroke={1.5} color="#582f0e" />
-                  <Text size="sm" fw={600} c="#333d29">
+                  <IconSunrise size={32} stroke={1.5} color="rgba(85, 130, 139, 1)" />
+                  <Text size="sm" fw={600} c="rgba(54, 73, 88, 1)">
                      {currentWeather.sunrise}
                   </Text>
                </Stack>
-               
+
                <Stack gap={4} align="center" style={{ flex: 1 }}>
                   <Text size="2xl" fw={600}>
                      💧
                   </Text>
-                  <Text size="sm" fw={600} c="#333d29">
+                  <Text size="sm" fw={600} c="rgba(54, 73, 88, 1)">
                      {currentWeather.humidity}%
                   </Text>
                </Stack>
-               
+
                <Stack gap={4} align="center" style={{ flex: 1 }}>
-                  <IconSunset size={32} stroke={1.5} color="#582f0e" />
-                  <Text size="sm" fw={600} c="#333d29">
+                  <IconSunset size={32} stroke={1.5} color="rgba(85, 130, 139, 1)" />
+                  <Text size="sm" fw={600} c="rgba(54, 73, 88, 1)">
                      {currentWeather.sunset}
                   </Text>
                </Stack>
@@ -325,12 +335,12 @@ export const WeatherCards = ({ weatherData }) => {
    const currentHour = new Date().getHours();
 
    return (
-      <Container fluid p={0} style={{ marginBottom: "2rem" }}>
+      <Container fluid p={0} style={{ marginBottom: "1rem" }}>
          <div
             style={{
                display: "flex",
                flexWrap: "wrap",
-               gap: "1rem",
+               gap: "0.6rem",
                justifyContent: "flex-start",
             }}
          >
@@ -342,59 +352,43 @@ export const WeatherCards = ({ weatherData }) => {
                return (
                   <Paper
                      key={index}
-                     shadow={isCurrentHour ? "xl" : "md"}
-                     radius="lg"
-                     p="md"
+                     shadow={isCurrentHour ? "xl" : "sm"}
+                     radius="md"
+                     p="sm"
                      style={{
-                        background: isCurrentHour 
-                           ? "linear-gradient(135deg, #656d4a 0%, #a4ac86 100%)"
-                           : "linear-gradient(135deg, #b6ad90 0%, #c2c5aa 100%)",
-                        border: isCurrentHour ? `3px solid #414833` : `2px solid #a68a64`,
+                        background: isCurrentHour
+                           ? "linear-gradient(135deg, rgba(85, 130, 139, 1) 0%, rgba(59, 96, 100, 1) 100%)"
+                           : "linear-gradient(135deg, rgba(201, 228, 202, 1) 0%, rgba(135, 187, 162, 1) 100%)",
+                        border: isCurrentHour ? `3px solid rgba(54, 73, 88, 1)` : `2px solid rgba(85, 130, 139, 1)`,
                         transition: "all 0.3s ease",
-                        minHeight: "140px",
+                        minHeight: "120px",
+                        minWidth: "90px",
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "center",
                      }}
                   >
-                     <Stack gap={8} align="center">
-                        <Text
-                           fw={isCurrentHour ? 700 : 600}
-                           size="lg"
-                           c={isCurrentHour ? "#333d29" : "#582f0e"}
-                        >
+                     <Stack gap={6} align="center">
+                        <Text fw={isCurrentHour ? 700 : 600} size="md" c={isCurrentHour ? "rgba(201, 228, 202, 1)" : "rgba(54, 73, 88, 1)"}>
                            {`${data.hour}h`}
                         </Text>
                         {IconComponent ? (
-                           <IconComponent 
-                              size={56} 
-                              color={isCurrentHour ? "#333d29" : "#582f0e"} 
-                           />
+                           <IconComponent size={48} color={isCurrentHour ? "rgba(201, 228, 202, 1)" : "rgba(59, 96, 100, 1)"} />
                         ) : (
-                           <Text size="sm" c={isCurrentHour ? "#333d29" : "#582f0e"}>
+                           <Text size="xs" c={isCurrentHour ? "rgba(201, 228, 202, 1)" : "rgba(54, 73, 88, 1)"}>
                               {data.sky}
                            </Text>
                         )}
-                        <Text 
-                           fw={600} 
-                           size="xl" 
-                           c={isCurrentHour ? "#333d29" : "#582f0e"}
-                        >
+                        <Text fw={600} size="lg" c={isCurrentHour ? "rgba(201, 228, 202, 1)" : "rgba(54, 73, 88, 1)"}>
                            {data.feels_like}°
                         </Text>
                         {hasRain && (
-                           <Text
-                              size="sm"
-                              fw={500}
-                              c={isCurrentHour ? "#333d29" : "#582f0e"}
-                              style={{
-                                 backgroundColor: isCurrentHour ? "rgba(51, 61, 41, 0.4)" : "rgba(88, 47, 14, 0.3)",
-                                 padding: "2px 8px",
-                                 borderRadius: "8px",
-                              }}
-                           >
-                              💧 {data.rain} mm
-                           </Text>
+                           <Group gap={3} align="center">
+                              <IconCloudRain size={16} stroke={2} color={isCurrentHour ? "rgba(201, 228, 202, 1)" : "rgba(85, 130, 139, 1)"} />
+                              <Text size="xs" fw={500} c={isCurrentHour ? "rgba(201, 228, 202, 1)" : "rgba(54, 73, 88, 1)"}>
+                                 {data.rain} mm
+                              </Text>
+                           </Group>
                         )}
                      </Stack>
                   </Paper>

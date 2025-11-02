@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Grid, Stack, Space, useMantineTheme } from "@mantine/core";
+import { Grid, Stack, Space, useMantineTheme, Loader, Text, Alert, Button } from "@mantine/core";
+import { IconAlertCircle, IconRefresh } from "@tabler/icons-react";
 import {
    TemperatureGraph,
    RainProbGraph,
@@ -7,6 +8,7 @@ import {
    WeatherCards,
    CurrentWeatherCard,
 } from "./WeatherCharts";
+import { DailyWeatherCards } from "./DailyWeatherCards";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import {
    Chart as ChartJS,
@@ -37,55 +39,97 @@ ChartJS.register(
 const WeatherDashboard = () => {
    const [weatherData, setWeatherData] = useState(null);
    const [currentWeather, setCurrentWeather] = useState(null);
+   const [dailyWeather, setDailyWeather] = useState(null);
    const [isLoading, setIsLoading] = useState(true);
    const [error, setError] = useState(null);
    const theme = useMantineTheme();
 
-   useEffect(() => {
-      const fetchWeatherData = async () => {
-         try {
-            // Fetch both endpoints in parallel for efficiency
-            const [weatherResponse, currentResponse] = await Promise.all([
-               fetch(`${import.meta.env.VITE_BACKEND_URL}/weather`),
-               fetch(`${import.meta.env.VITE_BACKEND_URL}/weather/current`)
-            ]);
+   const fetchWeatherData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+         // Fetch all three endpoints in parallel for efficiency
+         const [weatherResponse, currentResponse, dailyResponse] = await Promise.all([
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/weather`),
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/weather/current`),
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/weather/daily`)
+         ]);
 
-            if (!weatherResponse.ok) {
-               throw new Error(`Weather API error! status: ${weatherResponse.status}`);
-            }
-            
-            if (!currentResponse.ok) {
-               throw new Error(`Current weather API error! status: ${currentResponse.status}`);
-            }
-            
-            const [weatherData, currentData] = await Promise.all([
-               weatherResponse.json(),
-               currentResponse.json()
-            ]);
-            
-            setWeatherData(weatherData);
-            setCurrentWeather(currentData);
-            console.log("Fetched data:", weatherData, currentData);
-         } catch (e) {
-            console.error("Error fetching weather:", e);
-            setError(e.message || "Failed to fetch weather data");
-         } finally {
-            setIsLoading(false);
+         if (!weatherResponse.ok) {
+            throw new Error(`Weather service temporarily unavailable (${weatherResponse.status}). Please try again in a moment.`);
          }
-      };
+         
+         if (!currentResponse.ok) {
+            throw new Error(`Current weather service temporarily unavailable (${currentResponse.status}). Please try again in a moment.`);
+         }
+         
+         if (!dailyResponse.ok) {
+            throw new Error(`Daily weather service temporarily unavailable (${dailyResponse.status}). Please try again in a moment.`);
+         }
+         
+         const [weatherData, currentData, dailyData] = await Promise.all([
+            weatherResponse.json(),
+            currentResponse.json(),
+            dailyResponse.json()
+         ]);
+         
+         setWeatherData(weatherData);
+         setCurrentWeather(currentData);
+         setDailyWeather(dailyData);
+         console.log("Fetched data:", weatherData, currentData, dailyData);
+      } catch (e) {
+         console.error("Error fetching weather:", e);
+         setError(e.message || "Failed to fetch weather data. The weather service might be temporarily unavailable.");
+      } finally {
+         setIsLoading(false);
+      }
+   };
+
+   useEffect(() => {
       fetchWeatherData();
    }, []);
 
    if (isLoading) {
-      return <div className="text-lg text-gray-500">Loading weather data...</div>;
+      return (
+         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px', gap: '1rem' }}>
+            <Loader size="lg" type="bars" />
+            <Text size="lg" c="dimmed">Loading weather data...</Text>
+         </div>
+      );
    }
 
    if (error) {
-      return <div className="text-red-800">{error}</div>;
+      return (
+         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px', maxWidth: '600px', margin: '0 auto' }}>
+            <Alert 
+               variant="light" 
+               color="red" 
+               title="Weather Service Unavailable" 
+               icon={<IconAlertCircle />}
+               style={{ width: '100%' }}
+            >
+               <Text size="sm" mb="md">{error}</Text>
+               <Button 
+                  leftSection={<IconRefresh size={16} />} 
+                  onClick={fetchWeatherData}
+                  variant="light"
+                  color="red"
+               >
+                  Retry
+               </Button>
+            </Alert>
+         </div>
+      );
    }
 
    if (!weatherData || weatherData.length === 0) {
-      return <div className="text-yellow-800">No weather data available</div>;
+      return (
+         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
+            <Alert variant="light" color="yellow" title="No Data Available">
+               <Text size="sm">No weather data available at the moment.</Text>
+            </Alert>
+         </div>
+      );
    }
 
    // Data for the rainProb graph
@@ -155,24 +199,29 @@ const WeatherDashboard = () => {
 
    return (
       <div>
-         <Space h="xl" />
-         <div style={{ display: "flex", gap: "2rem", alignItems: "flex-start", marginBottom: "2rem" }}>
+         <Space h="md" />
+         <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start", marginBottom: "1rem" }}>
             <CurrentWeatherCard currentWeather={currentWeather} />
             <WeatherCards weatherData={todayTmrwData} />
          </div>
-         <Grid>
-            <Grid.Col span={6}>
-               <Stack gap={30}>
+         <Stack gap="md">
+            <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+               <div style={{ flex: "0 0 auto" }}>
+                  <DailyWeatherCards dailyData={dailyWeather} />
+               </div>
+               <div style={{ flex: "1 1 auto" }}>
                   <TemperatureGraph todayTmrwData={todayTmrwData} getTemperatureColor={getTemperatureColor} />
-               </Stack>
-            </Grid.Col>
-            <Grid.Col span={6}>
-               <Stack gap={30}>
+               </div>
+            </div>
+            <Grid gutter="md">
+               <Grid.Col span={6}>
                   <RainProbGraph probData={rainProb} plugins={ChartDataLabels} />
+               </Grid.Col>
+               <Grid.Col span={6}>
                   <HumidityChart todayTmrwData={todayTmrwData} />
-               </Stack>
-            </Grid.Col>
-         </Grid>
+               </Grid.Col>
+            </Grid>
+         </Stack>
       </div>
    );
 };

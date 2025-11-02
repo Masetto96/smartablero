@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../components/ConcertsList.css";
 
-const ConcertCard = ({ date, description, venue, index }) => {
+const ConcertCard = ({ date, description, venue, time, cost, index }) => {
   // Alternate colors between cyan, magenta, and lime for visual variety
   const colors = [
     { var: '--retro-cyan', name: 'cyan' },
@@ -59,6 +59,40 @@ const ConcertCard = ({ date, description, venue, index }) => {
           {description}
         </h3>
         
+        {/* Time and Cost row */}
+        {(time || cost) && (
+          <div style={{
+            display: 'flex',
+            gap: '1rem',
+            marginBottom: '0.75rem',
+            fontSize: '0.875rem',
+            fontWeight: 'bold',
+          }}>
+            {time && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                color: color,
+              }}>
+                <span>🕐</span>
+                <span>{time}h</span>
+              </div>
+            )}
+            {cost && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                color: color,
+              }}>
+                <span>💶</span>
+                <span>{cost}€</span>
+              </div>
+            )}
+          </div>
+        )}
+        
         <div style={{ 
           marginTop: '1rem',
           height: '4px',
@@ -74,22 +108,24 @@ const ConcertsList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchConcerts = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/concerts');
-        if (!response.ok) {
-          throw new Error('Failed to fetch concerts');
-        }
-        const data = await response.json();
-        setConcerts(data.concerts);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+  const fetchConcerts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/concerts`);
+      if (!response.ok) {
+        throw new Error(`Concert service temporarily unavailable (${response.status}). Please try again.`);
       }
-    };
+      const data = await response.json();
+      setConcerts(data.concerts);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchConcerts();
   }, []);
 
@@ -174,6 +210,8 @@ const ConcertsList = () => {
             date={concert.date}
             description={concert.description}
             venue={concert.venue}
+            time={concert.time}
+            cost={concert.cost}
             index={index}
           />
         ))}

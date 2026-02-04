@@ -98,7 +98,7 @@ function App() {
 
    return (
       <MantineProvider theme={theme}>
-         <Container fluid h={1920} style={{ backgroundColor: theme.colors.backgroundDark[0] }}>
+         <Container fluid h="100vh" w="100vw" style={{ backgroundColor: theme.colors.backgroundDark[0], padding: 0, margin: 0 }}>
             <RotatingDisplay components={displayComponents} />
          </Container>
       </MantineProvider>

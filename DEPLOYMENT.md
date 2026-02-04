@@ -1,151 +1,119 @@
-# 🚀 Raspberry Pi Quick Setup Guide
+# SmarTablero - Raspberry Pi Deployment
 
-This guide will help you deploy SmarTablero to your Raspberry Pi 4 in minutes!
+Simple deployment guide for running SmarTablero on a Raspberry Pi using pre-built Docker images.
 
-## Prerequisites
+## Quick Start
 
-- Raspberry Pi 4 with Raspberry Pi OS installed
-- Internet connection
-- SSH access to your Pi
+**One-time setup** → **Deploy** → **Update when needed**
 
-## Step-by-Step Deployment
+---
 
-### 1. Prepare Your Raspberry Pi
+## 1. Initial Setup (One Time Only)
 
-SSH into your Pi:
-```bash
-ssh pi@your-pi-ip-address
-```
-
-### 2. Install Docker (if not already installed)
+### Install Docker
 
 ```bash
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 sudo usermod -aG docker $USER
-
-# Log out and back in for group changes to take effect
-exit
-# SSH back in
 ```
 
-### 3. Clone the Repository
+Log out and back in for the group changes to take effect.
+
+### Clone Repository
 
 ```bash
 git clone https://github.com/Masetto96/smartablero.git
 cd smartablero
 ```
 
-### 4. Configure Environment Variables
+### Configure API Keys
 
 ```bash
+# Copy the example file
+cp backend/.env.example backend/.env
+
+# Edit and add your API keys
 nano backend/.env
 ```
 
-Add your configuration:
-```env
-KEY=your_aemet_api_key_here
-DEBUG=False
-RELOAD=False
-```
+Get your API keys:
+- **AEMET Weather**: https://opendata.aemet.es/centrodedescargas/inicio
+- **The Guardian News**: https://open-platform.theguardian.com/access/
 
-Save with `Ctrl+O`, `Enter`, then exit with `Ctrl+X`.
+### Login to GitHub Container Registry (Optional)
 
-### 5. Login to GitHub Container Registry (Optional)
-
-Only needed if the images are private:
+Only needed if images are private:
 
 ```bash
-# First, create a Personal Access Token on GitHub:
-# GitHub Settings → Developer Settings → Personal Access Tokens → Tokens (classic)
-# Required permission: read:packages
-
-echo YOUR_GITHUB_PAT | docker login ghcr.io -u Masetto96 --password-stdin
+echo YOUR_PAT_TOKEN | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
 ```
 
-### 6. Deploy!
+To make images public instead:
+1. Go to https://github.com/Masetto96\?tab\=packages
+2. Click each package → Package Settings → Change visibility → Public
 
-Use the automated deployment script:
+---
+
+## 2. Deploy
 
 ```bash
 ./deploy-pi.sh
 ```
 
-Or manually:
+That's it! Access your dashboard at:
+- **Frontend**: http://raspberry-pi-ip:3000
+- **API docs**: http://raspberry-pi-ip:8000/docs
 
-```bash
-docker-compose -f docker-compose.pi.yml pull
-docker-compose -f docker-compose.pi.yml up -d
-```
+---
 
-### 7. Access Your Dashboard
+## 3. Update (After Pushing New Code)
 
-Open your browser and navigate to:
-- **Dashboard**: `http://your-pi-ip:3000`
-- **API Docs**: `http://your-pi-ip:8000/docs`
+When you push code to the `master` branch, GitHub Actions builds new ARM64 images automatically.
 
-## Updating Your Deployment
-
-When new code is pushed to GitHub, images are automatically built. To update:
+Update your Pi:
 
 ```bash
 cd smartablero
 ./deploy-pi.sh
 ```
 
-Or manually:
-```bash
-docker-compose -f docker-compose.pi.yml pull
-docker-compose -f docker-compose.pi.yml up -d
-```
+---
 
-## Monitoring & Troubleshooting
+## Useful Commands
 
-### View Logs
+### View logs
 ```bash
-# All services
 docker-compose -f docker-compose.pi.yml logs -f
-
-# Specific service
-docker-compose -f docker-compose.pi.yml logs -f frontend
-docker-compose -f docker-compose.pi.yml logs -f backend
 ```
 
-### Check Service Status
+### Check status
 ```bash
 docker-compose -f docker-compose.pi.yml ps
 ```
 
-### Restart Services
+### Restart services
 ```bash
 docker-compose -f docker-compose.pi.yml restart
 ```
 
-### Stop Services
+### Stop everything
 ```bash
 docker-compose -f docker-compose.pi.yml down
 ```
 
-### Complete Reset
-```bash
-docker-compose -f docker-compose.pi.yml down -v
-docker-compose -f docker-compose.pi.yml pull
-docker-compose -f docker-compose.pi.yml up -d
-```
+---
 
-## Auto-start on Boot
+## Auto-start on Boot (Optional)
 
-To make the dashboard start automatically when your Pi boots:
-
-### Option 1: Using systemd (Recommended)
-
-Create a systemd service:
+Create systemd service:
 
 ```bash
 sudo nano /etc/systemd/system/smartablero.service
 ```
 
-Add this content:
+Paste:
+
 ```ini
 [Unit]
 Description=SmarTablero Dashboard
@@ -164,83 +132,45 @@ User=pi
 WantedBy=multi-user.target
 ```
 
-Enable and start:
+Enable:
+
 ```bash
+sudo systemctl daemon-reload
 sudo systemctl enable smartablero.service
 sudo systemctl start smartablero.service
-
-# Check status
-sudo systemctl status smartablero.service
 ```
-
-### Option 2: Using Docker's restart policy
-
-The docker-compose.pi.yml already includes `restart: unless-stopped`, which means containers will automatically restart on boot.
-
-Just make sure Docker starts on boot:
-```bash
-sudo systemctl enable docker
-```
-
-## Performance Tips
-
-1. **Optimize Pi Performance**: Increase GPU memory allocation
-   ```bash
-   sudo raspi-config
-   # Advanced Options → Memory Split → Set to 256MB
-   ```
-
-2. **Monitor Resources**:
-   ```bash
-   docker stats
-   ```
-
-3. **Clean Up Old Images**:
-   ```bash
-   docker system prune -a
-   ```
-
-## Common Issues
-
-### Issue: Images won't pull
-**Solution**: Check your internet connection and GitHub Container Registry access:
-```bash
-docker login ghcr.io
-docker pull ghcr.io/masetto96/smartablero/frontend:ref-sevilla
-```
-
-### Issue: Containers keep restarting
-**Solution**: Check logs for errors:
-```bash
-docker-compose -f docker-compose.pi.yml logs
-```
-
-### Issue: Can't access from browser
-**Solution**: 
-- Check if services are running: `docker-compose -f docker-compose.pi.yml ps`
-- Check firewall: `sudo ufw status`
-- Verify Pi's IP address: `hostname -I`
-
-## Security Considerations
-
-1. **Change default passwords** if you're using default Pi credentials
-2. **Use firewall** to restrict access:
-   ```bash
-   sudo ufw allow 3000/tcp
-   sudo ufw allow 8000/tcp
-   sudo ufw enable
-   ```
-3. **Keep system updated**:
-   ```bash
-   sudo apt update && sudo apt upgrade -y
-   ```
-
-## Need Help?
-
-- Check the [main README](./README.md) for more information
-- View GitHub Actions logs for build issues: https://github.com/Masetto96/smartablero/actions
-- Check container logs: `docker-compose -f docker-compose.pi.yml logs`
 
 ---
 
-**Enjoy your SmarTablero! 🎉**
+## How It Works
+
+1. **Push to master** → GitHub Actions builds ARM64 images → Pushes to ghcr.io
+2. **Run deploy-pi.sh** → Pulls latest images → Restarts containers
+3. **Resource limits**: Optimized for Raspberry Pi 4 (2GB RAM)
+   - Frontend: 128MB (nginx is lightweight)
+   - Backend: 768MB (Python + FastAPI)
+   - Total: ~900MB, leaving ~600MB headroom
+
+---
+
+## Troubleshooting
+
+### Containers won't start
+```bash
+docker-compose -f docker-compose.pi.yml logs
+docker-compose -f docker-compose.pi.yml down
+docker-compose -f docker-compose.pi.yml pull
+docker-compose -f docker-compose.pi.yml up -d
+```
+
+### Check memory usage
+```bash
+free -h
+docker stats
+```
+
+### Backend not responding
+```bash
+docker-compose -f docker-compose.pi.yml logs backend
+curl http://localhost:8000/docs
+```

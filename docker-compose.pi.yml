@@ -6,7 +6,7 @@ version: '3.8'
 
 services:
   frontend:
-    image: ghcr.io/masetto96/smartablero/frontend:ref-sevilla
+    image: ghcr.io/masetto96/smartablero/frontend:master
     container_name: smartablero-frontend
     ports:
       - "3000:80"
@@ -33,7 +33,7 @@ services:
         max-file: "3"
 
   backend:
-    image: ghcr.io/masetto96/smartablero/backend:ref-sevilla
+    image: ghcr.io/masetto96/smartablero/backend:master
     container_name: smartablero-backend
     ports:
       - "8000:8000"

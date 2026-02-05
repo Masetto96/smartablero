@@ -41,9 +41,12 @@ const PostItWall = () => {
     <Container 
       fluid 
       style={{ 
-        padding: "2rem",
+        padding: "1rem",
         backgroundColor: "rgb(32, 31, 26)",
-        minHeight: "100vh",
+        height: "100%",
+        width: "100%",
+        overflow: "auto",
+        boxSizing: "border-box",
       }}
     >
       <Stack gap="xl" align="center">

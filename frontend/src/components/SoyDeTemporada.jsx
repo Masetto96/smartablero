@@ -13,13 +13,14 @@ const SoyDeTemporada = () => {
     <div 
       style={{
         width: '100%',
-        height: '100vh',
+        height: '100%',
         display: 'flex',
         flexDirection: 'column',
         backgroundColor: 'rgb(32, 31, 26)',
         padding: '1rem',
         overflow: 'hidden',
         position: 'relative',
+        boxSizing: 'border-box',
       }}
       onWheel={handleWheel}
     >

@@ -85,8 +85,8 @@ const CustomCalendar = () => {
    };
 
    return (
-      <Container size={1300}>
-         <Space h="xl" />
+      <Container fluid px="md" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+         <Space h="md" />
          <FullCalendar
             plugins={[dayGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"

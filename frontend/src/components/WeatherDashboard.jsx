@@ -198,9 +198,9 @@ const WeatherDashboard = () => {
    };
 
    return (
-      <div>
+      <div style={{ height: '100%', width: '100%', padding: '0.5rem', boxSizing: 'border-box', overflow: 'auto' }}>
          <Space h="md" />
-         <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start", marginBottom: "1rem" }}>
+         <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start", marginBottom: "1rem", flexWrap: 'wrap' }}>
             <CurrentWeatherCard currentWeather={currentWeather} />
             <WeatherCards weatherData={todayTmrwData} />
          </div>

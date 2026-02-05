@@ -213,7 +213,7 @@ const NewsList = () => {
 
    // Show section overview
    return (
-      <div className="news-container" style={{ height: '100%', width: '100%', overflow: 'auto', padding: '1rem', boxSizing: 'border-box' }}>
+      <div className="news-container" style={{ height: '100vh', width: '100vw', overflow: 'hidden', padding: '1rem', boxSizing: 'border-box' }}>
          <div className="news-sections-grid">
             {Object.entries(articlesBySection).map(([section, articles], index) => {
                const colorScheme = colors[index % colors.length];

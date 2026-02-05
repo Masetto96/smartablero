@@ -190,7 +190,7 @@ const ConcertsList = () => {
   }
 
   return (
-    <div style={{ padding: '1rem', height: '100%', width: '100%', overflow: 'auto', boxSizing: 'border-box' }}>
+    <div style={{ padding: '1rem', height: '100vh', width: '100vw', overflow: 'hidden', boxSizing: 'border-box' }}>
       {/* <h2 className="retro-glow" style={{
         fontSize: '2.25rem',
         fontWeight: 'bold',

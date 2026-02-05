@@ -43,9 +43,9 @@ const PostItWall = () => {
       style={{ 
         padding: "1rem",
         backgroundColor: "rgb(32, 31, 26)",
-        height: "100%",
-        width: "100%",
-        overflow: "auto",
+        height: "100vh",
+        width: "100vw",
+        overflow: "hidden",
         boxSizing: "border-box",
       }}
     >
